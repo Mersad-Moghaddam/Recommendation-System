@@ -3,29 +3,79 @@ import { ChevronLeft, ChevronRight, Search, SlidersHorizontal } from 'lucide-rea
 import { api } from '../api'
 import MovieGrid from '../components/MovieGrid'
 import { ErrorMessage, Hero, SectionTitle } from '../components/UI'
-import { GENRES, faNumber } from '../utils'
+import { COPY, GENRE_OPTIONS } from '../constants/copy'
+import { faNumber } from '../utils'
 
-export default function Discover({ user, onRate, onSimilar }) {
-  const [draft, setDraft] = useState('')
-  const [filters, setFilters] = useState({ query: '', iranian: false, genre: '', page: 0 })
+export default function Discover({ user, onRate, onDetails, params, replaceParams }) {
+  const initialFilters = {
+    query: params.get('q') || '',
+    iranian: params.get('iranian') === '1',
+    genre: params.get('genre') || '',
+    page: Number(params.get('page') || 0),
+  }
+  const [draft, setDraft] = useState(initialFilters.query)
+  const [filters, setFilters] = useState(initialFilters)
   const [movies, setMovies] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+
   useEffect(() => {
+    let active = true
     api.movies({ query: filters.query, iranian: filters.iranian, genre: filters.genre, skip: filters.page * 24 })
-      .then(setMovies).catch((err) => setError(err.message)).finally(() => setLoading(false))
-  }, [filters])
-  const updateFilters = (next) => { setLoading(true); setError(''); setFilters((current) => ({ ...current, ...next })) }
+      .then((items) => active && setMovies(items))
+      .catch((requestError) => active && setError(requestError.message))
+      .finally(() => active && setLoading(false))
+    return () => { active = false }
+  }, [filters.genre, filters.iranian, filters.page, filters.query])
+
+  const updateFilters = (next) => {
+    setLoading(true)
+    setError('')
+    const updated = { ...filters, ...next }
+    setFilters(updated)
+    replaceParams({
+      q: updated.query || undefined,
+      genre: updated.genre || undefined,
+      iranian: updated.iranian ? '1' : undefined,
+      page: updated.page ? String(updated.page) : undefined,
+    })
+  }
   const search = (event) => { event.preventDefault(); updateFilters({ query: draft.trim(), page: 0 }) }
-  return <>
-    <Hero variant="compact-hero archive" eyebrow="آرشیو فیلم" title={<>فیلم بعدی‌ات<br/><em>همین‌جا منتظر است.</em></>} description="در میان آثار ایرانی و بین‌المللی جست‌وجو کن، ژانر را محدود کن و سلیقه‌ات را بساز." />
-    <section className="search-panel">
-      <form className="search-box" onSubmit={search}><Search size={20}/><input value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="نام فیلم را بنویس؛ مثلاً جدایی یا Interstellar" aria-label="جست‌وجوی فیلم"/><button>جست‌وجو</button></form>
-      <div className="filter-bar"><span><SlidersHorizontal size={17}/> فیلترها</span><select value={filters.genre} onChange={(e) => updateFilters({ genre:e.target.value, page:0 })} aria-label="فیلتر ژانر"><option value="">همه ژانرها</option>{Object.entries(GENRES).filter(([key]) => key !== '(no genres listed)').map(([key,label]) => <option value={key} key={key}>{label}</option>)}</select><label className="switch"><input type="checkbox" checked={filters.iranian} onChange={(e) => updateFilters({ iranian:e.target.checked, page:0 })}/><span/> فقط سینمای ایران</label>{(filters.query || filters.genre || filters.iranian) && <button className="clear-filter" onClick={() => { setDraft(''); updateFilters({ query:'', iranian:false, genre:'', page:0 }) }}>حذف فیلترها</button>}</div>
-    </section>
-    {error && <ErrorMessage>{error}</ErrorMessage>}
-    <SectionTitle eyebrow={filters.iranian ? 'کاتالوگ ایران' : 'کاتالوگ کامل'} title={filters.query ? `نتیجه برای «${filters.query}»` : 'مرور فیلم‌ها'} action={<span className="page-label">صفحه {faNumber(filters.page + 1)}</span>} />
-    <MovieGrid movies={movies} loading={loading} user={user} onRate={onRate} onSimilar={onSimilar}/>
-    {!loading && movies.length > 0 && <div className="pagination"><button disabled={filters.page === 0} onClick={() => updateFilters({ page:filters.page-1 })}><ChevronRight/> صفحه قبل</button><span>{faNumber(filters.page + 1)}</span><button disabled={movies.length < 24} onClick={() => updateFilters({ page:filters.page+1 })}>صفحه بعد <ChevronLeft/></button></div>}
-  </>
+  const clearFilters = () => { setDraft(''); updateFilters({ query: '', iranian: false, genre: '', page: 0 }) }
+
+  return (
+    <>
+      <Hero className="compact-hero archive-hero" eyebrow={COPY.discover.eyebrow} title={<>{COPY.discover.titleStart}<br /><em>{COPY.discover.titleAccent}</em></>} description={COPY.discover.description} />
+      <section className="search-panel">
+        <form className="search-box" onSubmit={search}>
+          <Search size={20} aria-hidden="true" />
+          <input name="movie-search" autoComplete="off" value={draft} onChange={(event) => setDraft(event.target.value)} placeholder={COPY.discover.searchPlaceholder} aria-label={COPY.discover.searchLabel} />
+          <button type="submit">{COPY.discover.searchAction}</button>
+        </form>
+        <div className="filter-bar">
+          <span><SlidersHorizontal size={17} aria-hidden="true" />{COPY.discover.filters}</span>
+          <select name="genre" autoComplete="off" value={filters.genre} onChange={(event) => updateFilters({ genre: event.target.value, page: 0 })} aria-label={COPY.discover.genreLabel}>
+            <option value="">{COPY.discover.allGenres}</option>
+            {GENRE_OPTIONS.map(([key, label]) => <option value={key} key={key}>{label}</option>)}
+          </select>
+          <label className="switch"><input type="checkbox" checked={filters.iranian} onChange={(event) => updateFilters({ iranian: event.target.checked, page: 0 })} /><span aria-hidden="true" />{COPY.discover.iranianOnly}</label>
+          {filters.query || filters.genre || filters.iranian ? <button type="button" className="clear-filter" onClick={clearFilters}>{COPY.discover.clear}</button> : null}
+        </div>
+      </section>
+      {error ? <ErrorMessage>{error}</ErrorMessage> : null}
+      <SectionTitle
+        eyebrow={filters.iranian ? COPY.discover.iranianCatalog : COPY.discover.fullCatalog}
+        title={filters.query ? COPY.discover.result(filters.query) : COPY.discover.browse}
+        action={<span className="page-label">{COPY.discover.page(faNumber(filters.page + 1))}</span>}
+      />
+      <MovieGrid movies={movies} loading={loading} user={user} onRate={onRate} onDetails={onDetails} />
+      {!loading && movies.length > 0 ? (
+        <div className="pagination">
+          <button type="button" disabled={filters.page === 0} onClick={() => updateFilters({ page: filters.page - 1 })}><ChevronRight aria-hidden="true" />{COPY.discover.previous}</button>
+          <span>{faNumber(filters.page + 1)}</span>
+          <button type="button" disabled={movies.length < 24} onClick={() => updateFilters({ page: filters.page + 1 })}>{COPY.discover.next}<ChevronLeft aria-hidden="true" /></button>
+        </div>
+      ) : null}
+    </>
+  )
 }

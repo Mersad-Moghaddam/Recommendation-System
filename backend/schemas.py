@@ -20,6 +20,19 @@ class MovieOut(BaseModel):
     title: str
     genres: list[str]
 
+class MovieDetailOut(MovieOut):
+    display_title: str
+    year: int | None
+    overview: str
+    experience: str
+    best_for: str
+    rating_average: float | None
+    rating_count: int
+    community_note: str
+    source: str
+    is_persian: bool
+    data_note: str
+
 class RatingIn(BaseModel):
     movie_id: int
     rating: float = Field(ge=0.5, le=5.0, multiple_of=0.5)

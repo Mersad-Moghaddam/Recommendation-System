@@ -1,44 +1,79 @@
 import { useEffect, useState } from 'react'
 import { ArrowLeft, BrainCircuit, Database, Film, Sparkles, Users } from 'lucide-react'
 import { api } from '../api'
-import MovieGrid from '../components/MovieGrid'
+import { CompactMovieGrid } from '../components/MovieGrid'
 import { Hero, SectionTitle } from '../components/UI'
-import { faNumber } from '../utils'
+import { COPY } from '../constants/copy'
+import { formatFaNumber } from '../utils'
 
-export default function Home({ setPage, user, onRate, onSimilar, showError }) {
+export default function Home({ navigate, user, onRate, onDetails, showError }) {
   const [stats, setStats] = useState(null)
-  const [iranian, setIranian] = useState([])
+  const [iranianMovies, setIranianMovies] = useState([])
   const [loading, setLoading] = useState(true)
+
   useEffect(() => {
+    let active = true
     Promise.all([api.stats(), api.movies({ iranian: true, limit: 6 })])
-      .then(([nextStats, movies]) => { setStats(nextStats); setIranian(movies) })
-      .catch(showError).finally(() => setLoading(false))
+      .then(([nextStats, movies]) => {
+        if (!active) return
+        setStats(nextStats)
+        setIranianMovies(movies)
+      })
+      .catch(showError)
+      .finally(() => active && setLoading(false))
+    return () => { active = false }
   }, [showError])
-  return <>
-    <Hero eyebrow="سینمای امشب، دقیق‌تر از همیشه" title={<>فیلمی پیدا کن که<br/><em>واقعاً به حالت بخورد.</em></>} description="سینمچ از سلیقه، حال‌وهوا و الگوی امتیاز کاربران واقعی یاد می‌گیرد؛ شفاف، سریع و بدون حدس‌های تصادفی.">
-      <button className="button primary" onClick={() => setPage('concierge')}><BrainCircuit size={19}/> شروع پیشنهاد هوشمند</button>
-      <button className="button ghost" onClick={() => setPage('discover')}>دیدن آرشیو <ArrowLeft size={18}/></button>
-    </Hero>
-    <section className="stats-strip" aria-label="آمار سامانه">
-      <Stat icon={Film} value={stats?.movies} label="فیلم در آرشیو" />
-      <Stat icon={Database} value={stats?.ratings} label="امتیاز واقعی" />
-      <Stat icon={Users} value={stats?.users} label="عضو سینمچ" />
-      <Stat icon={Sparkles} value={stats?.persian_movies} label="فیلم ایرانی منتخب" />
-    </section>
-    <section className="how-section">
-      <SectionTitle eyebrow="هوش مصنوعی توضیح‌پذیر" title="چرا این پیشنهاد برای من است؟" />
-      <div className="feature-grid">
-        <Feature number="۱" title="حالت را می‌فهمد" text="پاسخ‌های کوتاه تو را به یک بردار سلیقهٔ قابل محاسبه تبدیل می‌کند." />
-        <Feature number="۲" title="شباهت را پیدا می‌کند" text="با TF–IDF و شباهت کسینوسی، هزاران فیلم واقعی را مقایسه می‌کند." />
-        <Feature number="۳" title="با تو بهتر می‌شود" text="با هر امتیاز، الگوی کاربران هم‌سلیقه و ژانرهای محبوبت دقیق‌تر می‌شوند." />
-      </div>
-    </section>
-    <section>
-      <SectionTitle eyebrow="پیشنهاد ویژه" title="از سینمای ایران" action={<button className="link-button" onClick={() => setPage('discover')}>مشاهده همه <ArrowLeft size={16}/></button>} />
-      <MovieGrid movies={iranian} loading={loading} user={user} onRate={onRate} onSimilar={onSimilar} compact />
-    </section>
-  </>
+
+  return (
+    <>
+      <Hero
+        className="home-hero"
+        visual={<img className="hero-visual" src="/images/cinema-hero.webp" alt="" width="1599" height="900" fetchPriority="high" />}
+        eyebrow={COPY.home.eyebrow}
+        title={<>{COPY.home.titleStart}<br /><em>{COPY.home.titleAccent}</em></>}
+        description={COPY.home.description}
+      >
+        <a className="button primary" href="/#concierge" onClick={(event) => navigate('concierge', event)}>
+          <BrainCircuit size={19} aria-hidden="true" />{COPY.home.primaryAction}
+        </a>
+        <a className="button ghost" href="/#discover" onClick={(event) => navigate('discover', event)}>
+          {COPY.home.secondaryAction}<ArrowLeft size={18} aria-hidden="true" />
+        </a>
+        <small className="hero-proof"><Sparkles size={15} aria-hidden="true" />{COPY.home.proof}</small>
+      </Hero>
+
+      <section className="stats-strip" aria-label={COPY.home.statsLabel}>
+        <Stat icon={Film} value={stats?.movies} label={COPY.home.statMovies} />
+        <Stat icon={Database} value={stats?.ratings} label={COPY.home.statRatings} />
+        <Stat icon={Users} value={stats?.users} label={COPY.home.statUsers} />
+        <Stat icon={Sparkles} value={stats?.persian_movies} label={COPY.home.statPersian} />
+      </section>
+
+      <section className="how-section">
+        <SectionTitle eyebrow={COPY.home.howEyebrow} title={COPY.home.howTitle} />
+        <div className="feature-grid">
+          <Feature number="01" title={COPY.home.featureOneTitle} text={COPY.home.featureOneText} />
+          <Feature number="02" title={COPY.home.featureTwoTitle} text={COPY.home.featureTwoText} />
+          <Feature number="03" title={COPY.home.featureThreeTitle} text={COPY.home.featureThreeText} />
+        </div>
+      </section>
+
+      <section>
+        <SectionTitle
+          eyebrow={COPY.home.iranianEyebrow}
+          title={COPY.home.iranianTitle}
+          action={<a className="link-button" href="/#discover" onClick={(event) => navigate('discover', event)}>{COPY.home.viewAll}<ArrowLeft size={16} aria-hidden="true" /></a>}
+        />
+        <CompactMovieGrid movies={iranianMovies} loading={loading} user={user} onRate={onRate} onDetails={onDetails} />
+      </section>
+    </>
+  )
 }
 
-function Stat({ icon: Icon, value, label }) { return <div className="stat"><Icon size={21}/><div><strong>{value == null ? '…' : faNumber(Number(value).toLocaleString('fa-IR'))}</strong><span>{label}</span></div></div> }
-function Feature({ number, title, text }) { return <article className="feature-card"><span>{number}</span><h3>{title}</h3><p>{text}</p></article> }
+function Stat({ icon: Icon, value, label }) {
+  return <div className="stat"><Icon size={21} aria-hidden="true" /><div><strong>{value == null ? '—' : formatFaNumber(value)}</strong><span>{label}</span></div></div>
+}
+
+function Feature({ number, title, text }) {
+  return <article className="feature-card"><span>{number}</span><h3>{title}</h3><p>{text}</p></article>
+}

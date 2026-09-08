@@ -1,17 +1,44 @@
 import { useEffect, useState } from 'react'
-import { Film, Star } from 'lucide-react'
+import { ArrowLeft, Film, Star } from 'lucide-react'
 import { api } from '../api'
 import { Empty, ErrorMessage, Hero, Loading } from '../components/UI'
+import { COPY } from '../constants/copy'
 import { faNumber, genreFa } from '../utils'
 
-export default function Ratings({ token, setPage }) {
+export default function Ratings({ token, navigate, onDetails }) {
   const [ratings, setRatings] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  useEffect(() => { api.ratings(token).then(setRatings).catch((err) => setError(err.message)).finally(() => setLoading(false)) }, [token])
-  return <>
-    <Hero variant="compact-hero ratings" eyebrow="دفترچهٔ تماشا" title={<>رد پای سلیقهٔ<br/><em>سینمایی تو.</em></>} description="امتیازها پایهٔ پیشنهاد شخصی هستند؛ با هر انتخاب، مدل تو را بهتر می‌شناسد." />
-    {error && <ErrorMessage>{error}</ErrorMessage>}
-    {loading ? <Loading count={4}/> : ratings.length ? <div className="rating-list">{ratings.map((item) => <article key={item.id}><span className="rating-film"><Film/></span><div className="rating-info"><h3>{item.title}</h3><p>{item.genres.map(genreFa).join(' · ')}</p></div><div className="stars" aria-label={`امتیاز ${item.rating} از ۵`}><Star fill="currentColor"/><strong>{faNumber(item.rating)}</strong><small>از ۵</small></div></article>)}</div> : <><Empty title="هنوز امتیازی ثبت نکرده‌ای" text="چند فیلم را پیدا کن و به آن‌ها امتیاز بده تا پیشنهادهای شخصی فعال شوند."/><div className="center"><button className="button primary" onClick={() => setPage('discover')}>رفتن به آرشیو فیلم‌ها</button></div></>}
-  </>
+
+  useEffect(() => {
+    let active = true
+    api.ratings(token)
+      .then((items) => active && setRatings(items))
+      .catch((requestError) => active && setError(requestError.message))
+      .finally(() => active && setLoading(false))
+    return () => { active = false }
+  }, [token])
+
+  return (
+    <>
+      <Hero className="compact-hero ratings-hero" eyebrow={COPY.ratings.eyebrow} title={<>{COPY.ratings.titleStart}<br /><em>{COPY.ratings.titleAccent}</em></>} description={COPY.ratings.description} />
+      {error ? <ErrorMessage>{error}</ErrorMessage> : null}
+      {loading ? <Loading count={4} /> : ratings.length ? (
+        <div className="rating-list">
+          {ratings.map((item) => (
+            <article key={item.id}>
+              <button type="button" className="rating-film" onClick={() => onDetails(item)} aria-label={COPY.card.detailsAria(item.title)}><Film aria-hidden="true" /></button>
+              <button type="button" className="rating-info" onClick={() => onDetails(item)}><strong>{item.title}</strong><span>{item.genres.map(genreFa).join(' · ')}</span></button>
+              <div className="stars" aria-label={COPY.ratings.aria(item.rating)}><Star fill="currentColor" aria-hidden="true" /><strong>{faNumber(item.rating)}</strong><small>{COPY.ratings.outOf}</small></div>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <>
+          <Empty title={COPY.ratings.empty} text={COPY.ratings.emptyText} />
+          <div className="center"><a className="button primary" href="/#discover" onClick={(event) => navigate('discover', event)}>{COPY.ratings.discoverAction}<ArrowLeft size={18} aria-hidden="true" /></a></div>
+        </>
+      )}
+    </>
+  )
 }
