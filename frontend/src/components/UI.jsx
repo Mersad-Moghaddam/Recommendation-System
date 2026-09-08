@@ -4,9 +4,20 @@ import { AlertCircle, Film, LoaderCircle, X } from 'lucide-react'
 import { COPY } from '../constants/copy'
 
 export function Hero({ eyebrow, title, description, children, visual, className = '' }) {
+  const headerVisual = visual || (
+    <img
+      className="hero-visual"
+      src="/images/cinema-hero.webp"
+      alt=""
+      width="1599"
+      height="900"
+      fetchPriority="high"
+    />
+  )
+
   return (
     <section className={`hero ${className}`}>
-      {visual}
+      {headerVisual}
       <div className="hero-film-strip" aria-hidden="true"><i /><i /><i /><i /><i /></div>
       <div className="hero-content">
         <span className="eyebrow">{eyebrow}</span>

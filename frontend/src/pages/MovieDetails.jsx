@@ -45,6 +45,7 @@ export default function MovieDetails({ id, seed, user, onRate, onDetails, goBack
 function DetailHero({ movie, details, onRate }) {
   return (
     <article className="detail-hero">
+      <img className="detail-hero-visual" src="/images/cinema-hero.webp" alt="" width="1599" height="900" fetchPriority="high" />
       <div className="detail-poster"><DetailArtwork movie={movie} /></div>
       <div className="detail-main">
         <span className="eyebrow">{COPY.details.eyebrow}</span>
