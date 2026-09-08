@@ -12,22 +12,22 @@
   color: #f5f1e8;
   background: #09090c;
   font-synthesis: none;
-  --bg: #09090c;
-  --surface: #111116;
-  --surface-2: #18181f;
-  --line: rgba(255, 255, 255, 0.09);
-  --line-strong: rgba(255, 255, 255, 0.16);
-  --muted: #aaa7af;
-  --text: #f5f1e8;
-  --accent: #e33d49;
-  --accent-light: #ff6864;
-  --gold: #eabf6a;
-  --success: #62c89b;
-  --danger: #ff7773;
-  --radius-sm: 12px;
-  --radius-md: 19px;
-  --radius-lg: 28px;
-  --shadow: 0 24px 70px rgba(0, 0, 0, 0.34);
+  --bg: #061520;
+  --surface: #0b2231;
+  --surface-2: #102c3d;
+  --line: rgba(207, 177, 110, 0.18);
+  --line-strong: rgba(207, 177, 110, 0.38);
+  --muted: #afc1c7;
+  --text: #f7f1df;
+  --accent: #d79e35;
+  --accent-light: #f4c665;
+  --gold: #f4c665;
+  --success: #67d4a2;
+  --danger: #ff8c7d;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 14px;
+  --shadow: 0 28px 70px rgba(0, 7, 12, 0.5);
   --text-xs: 0.8125rem;
   --text-sm: 0.9375rem;
   --text-md: 1.0625rem;
@@ -36,7 +36,7 @@
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
-body { margin: 0; min-width: 320px; min-height: 100vh; background: var(--bg); font-size: 16px; font-weight: 400; line-height: 1.8; text-rendering: optimizeLegibility; font-kerning: normal; }
+body { margin: 0; min-width: 320px; min-height: 100vh; background: radial-gradient(circle at 85% -10%, #17445a 0, transparent 34rem), var(--bg); font-size: 16px; font-weight: 400; line-height: 1.8; text-rendering: optimizeLegibility; font-kerning: normal; }
 button, input, select, textarea { font: inherit; }
 button, a { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 button { color: inherit; }
@@ -475,4 +475,51 @@ p { text-wrap: pretty; }
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
   ::view-transition-group(*) { animation-duration: 0.01ms !important; }
+}
+
+/* Midnight Tehran Cinema: framed screens, ticket-like surfaces, projector-gold wayfinding. */
+.sidebar { width: 290px; padding: 30px 20px 24px; border-inline-end-color: rgba(244, 198, 101, 0.28); background: linear-gradient(180deg, #0b2736, #061520 72%); }
+.brand-mark { border-radius: 4px; color: #072033; background: var(--gold); box-shadow: 8px 8px 0 rgba(244, 198, 101, 0.16); }
+.brand b { color: var(--gold); }
+.catalog-badge { border-radius: 3px; border-color: rgba(244, 198, 101, 0.42); color: #f7dfa4; background: rgba(244, 198, 101, 0.1); }
+.nav { gap: 8px; }
+.nav-item { min-height: 52px; border-radius: 4px; border-inline-start: 2px solid transparent; color: #c2d1d3; }
+.nav-item:hover { background: rgba(244, 198, 101, 0.1); transform: translateX(-4px); }
+.nav-item.active { border-inline-start-color: var(--gold); background: rgba(244, 198, 101, 0.16); color: #fff8e8; }
+.nav-item.active::before { display: none; }
+.nav-item.active svg { color: var(--gold); }
+.main-content { max-width: 1600px; margin-inline-start: 290px; padding-block-start: 42px; }
+.hero { min-height: 360px; border-color: rgba(244, 198, 101, 0.32); border-radius: 8px; background: #071823; box-shadow: 14px 14px 0 rgba(244, 198, 101, 0.11), var(--shadow); }
+.hero::before { background: linear-gradient(270deg, rgba(4, 20, 31, 0.98) 0%, rgba(4, 20, 31, 0.88) 45%, rgba(4, 20, 31, 0.28) 100%); }
+.home-hero::before { background: linear-gradient(270deg, rgba(4, 20, 31, 0.98) 0%, rgba(4, 20, 31, 0.83) 42%, rgba(4, 20, 31, 0.18) 100%); }
+.hero-film-strip { color: var(--gold); opacity: 0.3; }
+.hero-film-strip i { border-color: currentColor; border-radius: 1px; }
+.hero-content { max-width: 700px; padding-inline-start: 24px; border-inline-start: 3px solid var(--gold); }
+.eyebrow, .section-heading > div > span { color: #f7d786; }
+.hero h1 em { color: var(--gold); }
+.hero p { color: #d3e0df; }
+.button { border-radius: 3px; }
+.button.primary { color: #082133; background: var(--gold); box-shadow: 5px 5px 0 rgba(244, 198, 101, 0.2); }
+.button.primary:hover { background: #ffe09a; box-shadow: 7px 7px 0 rgba(244, 198, 101, 0.25); }
+.button.ghost { border-color: rgba(244, 198, 101, 0.55); background: rgba(6, 21, 32, 0.52); }
+.stats-strip { border-radius: 4px; border-color: rgba(244, 198, 101, 0.25); background: #0b2635; box-shadow: 10px 10px 0 rgba(1, 10, 16, 0.35); }
+.stat > svg, .match, .details-link { color: var(--gold); }
+.feature-card, .movie-card, .search-panel, .quiz-card, .auth-card, .auth-benefits, .method-bar, .rating-list article { border-radius: 5px; border-color: rgba(244, 198, 101, 0.2); background: linear-gradient(145deg, #123447, #0a2230); }
+.feature-card { box-shadow: inset 0 3px 0 rgba(244, 198, 101, 0.58); }
+.feature-card:hover, .movie-card:hover { border-color: rgba(244, 198, 101, 0.72); }
+.movie-card:hover { box-shadow: 9px 9px 0 rgba(1, 10, 16, 0.34); }
+.genre-row span, .detail-tags span { border-color: rgba(244, 198, 101, 0.22); color: #dce7df; background: rgba(244, 198, 101, 0.08); }
+.rate-quick, .segmented, .filter-chip, .choice-card { border-radius: 3px; }
+.detail-hero { border-color: rgba(244, 198, 101, 0.32); border-radius: 8px; box-shadow: 14px 14px 0 rgba(244, 198, 101, 0.1), var(--shadow); }
+.detail-hero::before { background: linear-gradient(270deg, rgba(4, 20, 31, 0.98), rgba(4, 20, 31, 0.88) 54%, rgba(4, 20, 31, 0.45)); }
+.site-footer { border-color: rgba(244, 198, 101, 0.24); border-radius: 6px; background: #0a2230; }
+.site-footer h2, .footer-spark { color: var(--gold); }
+@media (max-width: 900px) {
+  .main-content { margin-inline-start: 0; padding-block-start: 18px; }
+  .mobile-header, .mobile-nav { border-color: rgba(244, 198, 101, 0.25); background: rgba(6, 21, 32, 0.94); }
+  .hero { box-shadow: 7px 7px 0 rgba(244, 198, 101, 0.1), var(--shadow); }
+}
+@media (max-width: 620px) {
+  .hero { border-radius: 6px; }
+  .hero-content { padding-inline-start: 16px; }
 }
