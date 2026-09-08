@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import TypedDict
+
 import numpy as np
 import pandas as pd
 from scipy.sparse import csr_matrix
@@ -16,6 +18,15 @@ from backend.constants import (
     TEXT_SEPARATORS,
 )
 from recommender.data import build_user_item_matrix
+
+
+class RecommendationRecord(TypedDict):
+    movie_id: int
+    title: str
+    genres: list[str]
+    score: float
+    reason: str
+
 
 class RecommendationEngine:
     MOOD_GENRES = {
@@ -79,7 +90,7 @@ class RecommendationEngine:
         return {key: float((value - minimum) / spread) if spread else 1.0
                 for key, value in scores.items()}
 
-    def _records(self, scores: dict[int, float], n: int, reason: str) -> list[dict]:
+    def _records(self, scores: dict[int, float], n: int, reason: str) -> list[RecommendationRecord]:
         if n <= 0:
             raise ValueError(ERROR_MESSAGES["invalid_limit"])
         ranked = sorted(scores.items(), key=lambda pair: pair[1], reverse=True)[:n]
@@ -88,7 +99,7 @@ class RecommendationEngine:
                  "score": round(float(score), 4), "reason": reason}
                 for mid, score in ranked if mid in self.movie_lookup.index]
 
-    def popular(self, n: int = 10, exclude: set[int] | None = None) -> list[dict]:
+    def popular(self, n: int = 10, exclude: set[int] | None = None) -> list[RecommendationRecord]:
         scores = self.quality_scores.copy()
         for mid in exclude or set():
             scores.pop(mid, None)
@@ -108,7 +119,7 @@ class RecommendationEngine:
             raise ValueError(ERROR_MESSAGES["invalid_discovery"])
 
     def preference_quiz(self, mood: str, genres: list[str], era: str = "Any era",
-                        discovery: int = 50, n: int = 12, origin: str = "Any") -> list[dict]:
+                        discovery: int = 50, n: int = 12, origin: str = "Any") -> list[RecommendationRecord]:
         """Rank real movies from a short preference form and rating confidence."""
         self._validate_quiz(mood, genres, era, discovery, origin)
         chosen = list(dict.fromkeys(genres + self.MOOD_GENRES[mood]))
@@ -146,7 +157,7 @@ class RecommendationEngine:
         reason = RECOMMENDATION_REASONS["quiz"].format(genres=TEXT_SEPARATORS["list"].join(labels))
         return self._records(self._normalize(scores), n, reason)
 
-    def similar_movies(self, movie_id: int, n: int = 10) -> list[dict]:
+    def similar_movies(self, movie_id: int, n: int = 10) -> list[RecommendationRecord]:
         if movie_id not in self.id_to_position:
             raise KeyError(ERROR_MESSAGES["movie_not_found"])
         row = cosine_similarity(self.genre_matrix[self.id_to_position[movie_id]], self.genre_matrix)[0]
@@ -184,7 +195,7 @@ class RecommendationEngine:
         rated = set(self.ratings[self.ratings.userId == user_id].movieId.astype(int))
         return {mid: float(values[pos]) for mid, pos in self.id_to_position.items() if mid not in rated}
 
-    def recommend(self, user_id: int, method: str = "hybrid", n: int = 10, alpha: float = .65) -> list[dict]:
+    def recommend(self, user_id: int, method: str = "hybrid", n: int = 10, alpha: float = .65) -> list[RecommendationRecord]:
         if method not in {"hybrid", "collaborative", "content", "popular"}:
             raise ValueError(ERROR_MESSAGES["invalid_method"])
         if not 0 <= alpha <= 1:
