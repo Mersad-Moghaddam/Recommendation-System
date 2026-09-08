@@ -8,6 +8,7 @@ CineMatch is a complete but deliberately small university project that demonstra
 - Item-based collaborative filtering from rating behavior
 - Genre-based content recommendations using TF–IDF and cosine similarity
 - A normalized hybrid score combining collaborative and content signals
+- An AI Movie Concierge that turns a four-question form into recommendations
 - Registration, login, password hashing, ratings, browsing, and recommendations
 - Clean separation between UI, API/services, database, and ML code
 
@@ -72,6 +73,7 @@ Open `http://localhost:8501`. Interactive API documentation is at `http://127.0.
 | POST | `/ratings` | Create or update the current user's rating |
 | GET | `/users/me/ratings` | Current user's rating history |
 | GET | `/recommendations/me?method=hybrid` | Personalized/cold-start list |
+| POST | `/recommendations/quiz` | Mood, genre, era, and discovery recommendations |
 | GET | `/movies/{id}/similar` | Genre-similar movies |
 
 Protected endpoints accept `Authorization: Bearer <token>`.
@@ -85,6 +87,8 @@ Protected endpoints accept `Authorization: Bearer <token>`.
 **Content-based filtering** converts pipe-separated genres into TF–IDF vectors. It builds a taste profile from movies the user rated at least 3.5 and retrieves the closest unseen genre vectors.
 
 **Hybrid** min–max normalizes both candidate scores and combines them: `0.65 × collaborative + 0.35 × content`. With fewer than three ratings, it automatically falls back to popularity.
+
+**AI Movie Concierge** converts the visitor's mood and selected genres into the same TF–IDF feature space as the catalog. Cosine similarity measures fit, an era choice filters candidates, and a discovery slider controls how much the confidence-weighted community score influences ranking. It needs no account or rating history.
 
 Missing values in the user–item matrix mean “not rated,” not a zero-star opinion. They are filled with zero only at the cosine-computation boundary, where zero represents no observed interaction.
 

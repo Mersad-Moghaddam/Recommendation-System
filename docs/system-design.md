@@ -26,6 +26,7 @@ Browser
 3. Registration creates a salted scrypt password hash. Login returns a signed, expiring bearer token.
 4. A rating is upserted under the authenticated user and changes the cache signature.
 5. The next recommendation request rebuilds the cached feature structures from SQLite, ranks unseen candidates, and returns scores plus human-readable reasons.
+6. Visitors without history can submit the AI Concierge form. Mood and genre answers become a TF–IDF query vector, cosine similarity measures catalog fit, the era filters candidates, and the discovery value controls the popularity-quality blend.
 
 ## Design choices and tradeoffs
 

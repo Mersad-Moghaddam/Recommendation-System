@@ -28,3 +28,9 @@ def test_invalid_method():
     try: sample_engine().recommend(1, "magic")
     except ValueError: pass
     else: raise AssertionError("invalid method should fail")
+
+def test_preference_quiz_uses_mood_and_era():
+    results = sample_engine().preference_quiz("Escape", ["Sci-Fi"], "Modern", 60, 2)
+    assert results
+    assert results[0]["movie_id"] in {1, 2}
+    assert "escape" in results[0]["reason"]

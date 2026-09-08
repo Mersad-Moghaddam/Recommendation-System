@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from backend.schemas import Credentials, MovieOut, RatingIn, RatingOut, RecommendationOut, TokenOut
+from backend.schemas import Credentials, MovieOut, QuizIn, RatingIn, RatingOut, RecommendationOut, TokenOut
 from backend.security import create_token, read_token
 from backend.services import MovieService, RatingService, RecommendationService, UserService
 from database.database import create_tables, get_db
@@ -71,6 +71,16 @@ def my_ratings(user: User = Depends(current_user), db: Session = Depends(get_db)
 def recommendations(method: str = "hybrid", n: int = Query(10, ge=1, le=50), user: User = Depends(current_user), db: Session = Depends(get_db)):
     try: return RecommendationService.recommend(db, user.id, method, n)
     except ValueError as exc: raise HTTPException(422, str(exc))
+
+@app.post("/recommendations/quiz", response_model=list[RecommendationOut], tags=["Recommendations"])
+def quiz_recommendations(body: QuizIn, db: Session = Depends(get_db)):
+    """Recommend from a short mood-and-taste form; no history is required."""
+    try:
+        return RecommendationService.engine(db).preference_quiz(
+            body.mood, body.genres, body.era, body.discovery, body.n
+        )
+    except ValueError as exc:
+        raise HTTPException(422, str(exc))
 
 @app.get("/movies/{movie_id}/similar", response_model=list[RecommendationOut], tags=["Recommendations"])
 def similar(movie_id: int, n: int = Query(8, ge=1, le=30), db: Session = Depends(get_db)):

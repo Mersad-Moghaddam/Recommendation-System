@@ -7,6 +7,15 @@ from sklearn.metrics.pairwise import cosine_similarity
 from recommender.data import build_user_item_matrix
 
 class RecommendationEngine:
+    MOOD_GENRES = {
+        "Feel-good": ["Comedy", "Romance", "Animation", "Musical"],
+        "Thrilled": ["Action", "Adventure", "Thriller"],
+        "Thoughtful": ["Drama", "Documentary", "Mystery"],
+        "Escape": ["Fantasy", "Sci-Fi", "Adventure"],
+        "Comfort": ["Comedy", "Children", "Romance"],
+        "Surprise me": [],
+    }
+
     def __init__(self, movies: pd.DataFrame, ratings: pd.DataFrame, cold_start_ratings: int = 3):
         self.movies = movies[["movieId", "title", "genres"]].drop_duplicates("movieId").copy()
         self.ratings = ratings[["userId", "movieId", "rating"]].copy()
@@ -14,7 +23,8 @@ class RecommendationEngine:
         self.movie_ids = self.movies.movieId.astype(int).tolist()
         self.id_to_position = {movie_id: i for i, movie_id in enumerate(self.movie_ids)}
         genre_text = self.movies.genres.fillna("").str.replace("|", " ", regex=False)
-        self.genre_matrix = TfidfVectorizer(token_pattern=r"[^ ]+").fit_transform(genre_text)
+        self.genre_vectorizer = TfidfVectorizer(token_pattern=r"[^ ]+")
+        self.genre_matrix = self.genre_vectorizer.fit_transform(genre_text)
         self.user_item = build_user_item_matrix(self.ratings)
         item_matrix = self.user_item.fillna(0).T
         self.item_ids = item_matrix.index.astype(int).tolist()
@@ -48,6 +58,40 @@ class RecommendationEngine:
         for mid in exclude or set():
             scores.pop(mid, None)
         return self._records(self._normalize(scores), n, "Popular and consistently well rated")
+
+    def preference_quiz(self, mood: str, genres: list[str], era: str = "Any era",
+                        discovery: int = 50, n: int = 12) -> list[dict]:
+        """Rank real movies from a short preference form and rating confidence."""
+        if mood not in self.MOOD_GENRES:
+            raise ValueError("Unknown mood")
+        chosen = list(dict.fromkeys(genres + self.MOOD_GENRES[mood]))
+        if not chosen:
+            chosen = ["Drama", "Comedy", "Adventure", "Thriller"]
+        query_vector = self.genre_vectorizer.transform([" ".join(chosen)])
+        fit = cosine_similarity(query_vector, self.genre_matrix)[0]
+
+        stats = self.ratings.groupby("movieId").rating.agg(["mean", "count"])
+        global_mean = float(self.ratings.rating.mean())
+        confidence = max(5.0, float(stats["count"].quantile(.60)))
+        quality_raw = ((stats["count"] * stats["mean"] + confidence * global_mean)
+                       / (stats["count"] + confidence)).to_dict()
+        quality = self._normalize(quality_raw)
+        popular_weight = .35 * (1 - discovery / 100)
+
+        years = self.movies.title.str.extract(r"\((\d{4})\)\s*$")[0].astype(float)
+        def era_ok(year: float) -> bool:
+            if pd.isna(year) or era == "Any era": return True
+            if era == "Classics": return year < 1980
+            if era == "80s & 90s": return 1980 <= year < 2000
+            if era == "2000s": return 2000 <= year < 2015
+            return year >= 2015
+
+        scores = {}
+        for pos, movie_id in enumerate(self.movie_ids):
+            if era_ok(years.iloc[pos]) and fit[pos] > 0:
+                scores[movie_id] = float((1 - popular_weight) * fit[pos] + popular_weight * quality.get(movie_id, 0))
+        reason = f"Matches your {mood.lower()} mood and {', '.join(chosen[:3])} preference"
+        return self._records(scores, n, reason)
 
     def similar_movies(self, movie_id: int, n: int = 10) -> list[dict]:
         if movie_id not in self.id_to_position:
