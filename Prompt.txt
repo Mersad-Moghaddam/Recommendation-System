@@ -1,0 +1,1361 @@
+You are a Senior Software Architect, Python Backend Engineer, Data Scientist, Machine Learning Engineer, and Full-Stack Python Developer.
+
+Your task is to design and implement a complete, production-quality academic project called:
+
+# AI-Powered Movie Recommendation System
+
+The entire system must be implemented in Python.
+
+The project must contain:
+
+1. A Data Science and Machine Learning recommendation engine
+2. A Python backend web service/API
+3. A Python frontend
+4. A database layer
+5. Data preprocessing and analysis
+6. Model evaluation
+7. Automated tests
+8. Professional documentation
+9. A clean and modular software architecture
+
+The final system must be genuinely executable and the components must work together end-to-end.
+
+Do NOT generate disconnected code examples.
+Do NOT create fake recommendation results.
+Do NOT hard-code recommendations.
+Do NOT leave major functionality as TODOs or placeholders.
+
+The recommendation results must be generated dynamically from real movie and rating data.
+
+==================================================
+1. PROJECT PURPOSE
+==================================================
+
+The goal is to build an intelligent movie recommendation platform similar in concept to Netflix or other modern recommendation platforms.
+
+The system should learn from user behavior and movie information to generate personalized recommendations.
+
+A user should be able to:
+
+- Register or use an existing account
+- Log in
+- Browse movies
+- View movie information
+- Rate movies
+- See personalized recommendations
+- Ask for movies similar to a selected movie
+- View popular movies
+- Receive recommendations based on their rating history
+- Receive reasonable recommendations even when they are a new user
+
+The project must demonstrate real Data Science concepts rather than being only a CRUD web application.
+
+The core intelligence of the project is the recommendation engine.
+
+==================================================
+2. MAIN OBJECTIVES
+==================================================
+
+The project has four major layers:
+
+Layer 1 — Data Science
+
+- Data loading
+- Data cleaning
+- Exploratory Data Analysis
+- Feature engineering
+- User-item matrix
+- Similarity computation
+- Collaborative filtering
+- Content-based filtering
+- Hybrid recommendation
+- Cold-start handling
+- Evaluation metrics
+
+Layer 2 — Backend Web Service
+
+- REST API
+- Authentication
+- User management
+- Movie management
+- Rating management
+- Recommendation endpoints
+- Similar-movie endpoints
+
+Layer 3 — Database
+
+- Users
+- Movies
+- Ratings
+- Optional interaction history
+
+Layer 4 — Frontend
+
+- Login/register
+- Home page
+- Movie browser
+- Movie details
+- Rating interface
+- Personalized recommendations
+- Similar movie recommendations
+- Popular movies
+- Basic user dashboard
+
+==================================================
+3. TECHNOLOGY STACK
+==================================================
+
+Everything must be implemented using Python-based technologies.
+
+Core language:
+Python 3.11+
+
+Data Science:
+- NumPy
+- Pandas
+- SciPy
+- Scikit-learn
+- Matplotlib
+- Jupyter
+
+Backend:
+- FastAPI
+- Uvicorn
+- Pydantic
+- SQLAlchemy
+
+Database:
+- SQLite for the default local development environment
+- SQLAlchemy ORM
+
+Frontend:
+- Streamlit
+
+Testing:
+- Pytest
+- FastAPI TestClient
+
+Optional:
+- python-dotenv
+- httpx
+
+Do not introduce unnecessary technologies.
+
+Do not require JavaScript, React, Node.js, or another frontend framework.
+
+==================================================
+4. HIGH-LEVEL ARCHITECTURE
+==================================================
+
+Use a layered and modular architecture.
+
+The architecture should conceptually be:
+
+                    ┌─────────────────────┐
+                    │     Streamlit UI    │
+                    │      Frontend       │
+                    └──────────┬──────────┘
+                               │ HTTP
+                               ▼
+                    ┌─────────────────────┐
+                    │      FastAPI        │
+                    │     Web Service     │
+                    └──────────┬──────────┘
+                               │
+             ┌─────────────────┼─────────────────┐
+             ▼                 ▼                 ▼
+     ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+     │  User/Rating │  │ Recommendation│  │ Movie        │
+     │   Services   │  │    Service    │  │   Service    │
+     └──────┬───────┘  └──────┬────────┘  └──────┬───────┘
+            │                 │                  │
+            └─────────────────┼──────────────────┘
+                              ▼
+                    ┌─────────────────────┐
+                    │   Recommendation    │
+                    │       Engine        │
+                    └──────────┬──────────┘
+                               ▼
+                    ┌─────────────────────┐
+                    │ Data / ML Pipeline  │
+                    └──────────┬──────────┘
+                               ▼
+                    ┌─────────────────────┐
+                    │ SQLite Database     │
+                    └─────────────────────┘
+
+The frontend must never contain recommendation algorithms.
+
+The FastAPI layer must not contain Data Science implementation details.
+
+The recommendation engine must be independently usable and testable.
+
+==================================================
+5. PROJECT STRUCTURE
+==================================================
+
+Create the following structure:
+
+Movie-Recommender/
+
+│
+├── app/
+│   ├── __init__.py
+│   └── main.py
+│
+├── backend/
+│   ├── __init__.py
+│   │
+│   ├── api/
+│   │   ├── __init__.py
+│   │   ├── auth.py
+│   │   ├── movies.py
+│   │   ├── ratings.py
+│   │   └── recommendations.py
+│   │
+│   ├── schemas/
+│   │   ├── __init__.py
+│   │   ├── user.py
+│   │   ├── movie.py
+│   │   ├── rating.py
+│   │   └── recommendation.py
+│   │
+│   ├── services/
+│   │   ├── __init__.py
+│   │   ├── user_service.py
+│   │   ├── movie_service.py
+│   │   ├── rating_service.py
+│   │   └── recommendation_service.py
+│   │
+│   └── dependencies.py
+│
+├── database/
+│   ├── __init__.py
+│   ├── database.py
+│   ├── models.py
+│   └── seed.py
+│
+├── recommender/
+│   ├── __init__.py
+│   │
+│   ├── data/
+│   │   ├── __init__.py
+│   │   ├── loader.py
+│   │   └── preprocessing.py
+│   │
+│   ├── features/
+│   │   ├── __init__.py
+│   │   ├── user_item_matrix.py
+│   │   ├── genre_features.py
+│   │   └── similarity.py
+│   │
+│   ├── models/
+│   │   ├── __init__.py
+│   │   ├── collaborative.py
+│   │   ├── content_based.py
+│   │   ├── popularity.py
+│   │   └── hybrid.py
+│   │
+│   ├── evaluation/
+│   │   ├── __init__.py
+│   │   └── metrics.py
+│   │
+│   └── engine.py
+│
+├── frontend/
+│   ├── __init__.py
+│   ├── streamlit_app.py
+│   ├── pages/
+│   │   ├── home.py
+│   │   ├── login.py
+│   │   ├── movies.py
+│   │   ├── movie_details.py
+│   │   ├── recommendations.py
+│   │   └── profile.py
+│   │
+│   └── utils/
+│       ├── __init__.py
+│       └── api_client.py
+│
+├── data/
+│   ├── raw/
+│   ├── processed/
+│   └── external/
+│
+├── notebooks/
+│   ├── 01_eda.ipynb
+│   ├── 02_preprocessing.ipynb
+│   ├── 03_recommendation_models.ipynb
+│   └── 04_evaluation.ipynb
+│
+├── tests/
+│   ├── __init__.py
+│   ├── test_data.py
+│   ├── test_similarity.py
+│   ├── test_recommendation.py
+│   ├── test_database.py
+│   ├── test_api.py
+│   └── test_frontend_logic.py
+│
+├── scripts/
+│   ├── initialize_database.py
+│   ├── train_models.py
+│   └── evaluate_models.py
+│
+├── config/
+│   ├── __init__.py
+│   └── settings.py
+│
+├── requirements.txt
+├── pyproject.toml
+├── .env.example
+├── .gitignore
+├── README.md
+└── run.py
+
+==================================================
+6. DATASET
+==================================================
+
+Use the MovieLens dataset.
+
+The expected movie data should contain:
+
+- movieId
+- title
+- genres
+
+The expected rating data should contain:
+
+- userId
+- movieId
+- rating
+- timestamp
+
+The implementation must support MovieLens-style datasets.
+
+Do not embed the dataset directly into the source code.
+
+The data should exist under:
+
+data/raw/
+
+Create appropriate mechanisms for preprocessing the raw dataset into:
+
+data/processed/
+
+==================================================
+7. DATA SCIENCE PIPELINE
+==================================================
+
+Implement the complete pipeline:
+
+Raw Data
+    ↓
+Validation
+    ↓
+Cleaning
+    ↓
+Preprocessing
+    ↓
+Feature Engineering
+    ↓
+User-Item Matrix
+    ↓
+Recommendation Models
+    ↓
+Evaluation
+    ↓
+Recommendation Engine
+
+Each stage must be modular.
+
+==================================================
+8. EXPLORATORY DATA ANALYSIS
+==================================================
+
+Implement EDA including:
+
+- Number of users
+- Number of movies
+- Number of ratings
+- Average rating
+- Median rating
+- Rating distribution
+- Number of ratings per user
+- Number of ratings per movie
+- Popular movies
+- Highest-rated movies
+- Minimum-rating threshold analysis
+- Genre distribution
+- Dataset sparsity
+
+Use Matplotlib.
+
+The EDA notebook should contain explanations, visualizations, and conclusions.
+
+==================================================
+9. USER-ITEM MATRIX
+==================================================
+
+Build a User-Item Matrix:
+
+Rows = Users
+Columns = Movies
+Values = Ratings
+
+Implement:
+
+build_user_item_matrix()
+
+Handle missing values correctly.
+
+Do not incorrectly interpret missing ratings as zero ratings without justification.
+
+The matrix must be suitable for similarity calculations.
+
+==================================================
+10. COLLABORATIVE FILTERING
+==================================================
+
+Implement collaborative filtering.
+
+Use an academically understandable approach.
+
+At minimum support:
+
+- User-based collaborative filtering
+or
+- Item-based collaborative filtering
+
+Prefer item-based collaborative filtering when computationally appropriate.
+
+Use cosine similarity or another defensible similarity metric.
+
+The recommendation process should:
+
+1. Identify movies relevant to the user's history.
+2. Find similar movies/users.
+3. Calculate candidate scores.
+4. Aggregate scores.
+5. Remove already-rated movies.
+6. Rank candidates.
+7. Return top-K results.
+
+Implement:
+
+recommend_collaborative(
+    user_id,
+    n_recommendations=10
+)
+
+==================================================
+11. CONTENT-BASED RECOMMENDATION
+==================================================
+
+Build a content-based recommender using movie genres.
+
+Use multi-hot/TF-IDF-like feature representation as appropriate.
+
+Calculate movie similarity using cosine similarity.
+
+Implement:
+
+recommend_similar_movies(
+    movie_id,
+    n_recommendations=10
+)
+
+Recommendations must be based on actual movie features.
+
+==================================================
+12. POPULARITY RECOMMENDATION
+==================================================
+
+Implement a popularity model for:
+
+- New users
+- Users with insufficient ratings
+- Fallback recommendations
+
+Do not simply sort by average rating.
+
+Use a minimum-rating threshold or Bayesian-style weighted score to prevent movies with one rating from appearing unrealistically high.
+
+Implement:
+
+recommend_popular_movies(
+    n_recommendations=10
+)
+
+==================================================
+13. HYBRID RECOMMENDER
+==================================================
+
+Implement the primary hybrid recommendation model.
+
+Combine:
+
+- Collaborative filtering
+- Content-based recommendation
+
+Use configurable weights.
+
+Example:
+
+hybrid_score =
+    alpha * collaborative_score
+    +
+    (1 - alpha) * content_score
+
+Normalize component scores before combining them when necessary.
+
+Implement:
+
+recommend_hybrid(
+    user_id,
+    n_recommendations=10,
+    alpha=0.7
+)
+
+The hybrid model should become the main recommendation method exposed to the backend.
+
+==================================================
+14. COLD START
+==================================================
+
+Handle new users.
+
+A new user may have zero ratings.
+
+The system must not crash.
+
+Use popularity-based recommendations as the initial fallback.
+
+Optionally create a lightweight onboarding mechanism where the user selects a few favorite movies or genres.
+
+After enough ratings exist, switch to personalized recommendations.
+
+==================================================
+15. RECOMMENDATION ENGINE
+==================================================
+
+Create a central RecommendationEngine class.
+
+Example responsibilities:
+
+- Load data
+- Prepare models
+- Cache similarity matrices
+- Generate recommendations
+- Handle cold start
+- Exclude watched/rated movies
+- Normalize scores
+- Return structured results
+
+Example interface:
+
+RecommendationEngine.recommend(
+    user_id,
+    method="hybrid",
+    n=10
+)
+
+Also support:
+
+RecommendationEngine.similar_movies(
+    movie_id,
+    n=10
+)
+
+The engine must not depend on Streamlit.
+
+The engine must not depend directly on FastAPI.
+
+It should be a standalone Python module.
+
+==================================================
+16. DATABASE
+==================================================
+
+Use SQLite + SQLAlchemy.
+
+Create models for:
+
+User
+Movie
+Rating
+
+Optional:
+
+UserInteraction
+
+Relationships should be properly defined.
+
+Users should be able to:
+
+- Register
+- Log in
+- Rate movies
+- Retrieve their ratings
+- Receive recommendations
+
+Movies should store:
+
+- ID
+- Title
+- Genres
+- Optional metadata
+
+Ratings should store:
+
+- User ID
+- Movie ID
+- Rating
+- Timestamp
+
+Add appropriate uniqueness constraints.
+
+For example:
+
+A user should not have duplicate ratings for the same movie.
+
+==================================================
+17. BACKEND WEB SERVICE
+==================================================
+
+Build the backend using FastAPI.
+
+Main entry point:
+
+app/main.py
+
+Provide REST endpoints.
+
+Authentication:
+
+POST /auth/register
+POST /auth/login
+
+Movies:
+
+GET /movies
+GET /movies/{movie_id}
+
+Ratings:
+
+POST /ratings
+GET /users/{user_id}/ratings
+
+Recommendations:
+
+GET /recommendations/{user_id}
+GET /recommendations/{user_id}?method=hybrid
+GET /recommendations/{user_id}?method=collaborative
+GET /recommendations/{user_id}?method=popular
+
+Similar movies:
+
+GET /movies/{movie_id}/similar
+
+System:
+
+GET /health
+
+Use Pydantic schemas for request and response validation.
+
+Use dependency injection properly.
+
+Do not put database logic directly inside route functions when it belongs in services.
+
+==================================================
+18. AUTHENTICATION
+==================================================
+
+Implement basic secure authentication suitable for an academic local project.
+
+Passwords must NOT be stored as plaintext.
+
+Use a password hashing library such as bcrypt/passlib or an appropriate modern alternative.
+
+Use token-based authentication if practical.
+
+Do not expose passwords through API responses.
+
+Keep authentication logic modular.
+
+==================================================
+19. BACKEND SERVICE LAYER
+==================================================
+
+Create service classes/modules.
+
+For example:
+
+UserService
+MovieService
+RatingService
+RecommendationService
+
+The API route should call service functions.
+
+The recommendation service should call:
+
+RecommendationEngine
+
+instead of duplicating recommendation logic.
+
+==================================================
+20. FRONTEND
+==================================================
+
+Build the entire frontend using Streamlit.
+
+Do NOT use React.
+
+Do NOT require JavaScript.
+
+The frontend communicates with FastAPI through HTTP.
+
+Create a clean user interface.
+
+Main screens:
+
+1. Login/Register
+2. Home
+3. Movie Browser
+4. Movie Details
+5. Recommendations
+6. Profile
+
+==================================================
+21. FRONTEND USER EXPERIENCE
+==================================================
+
+After logging in, the user should see:
+
+"Recommended For You"
+
+with movie cards or organized sections.
+
+Also include:
+
+"Popular Movies"
+
+and:
+
+"Because You Liked..."
+
+The user should be able to select a movie and see:
+
+- Title
+- Genres
+- Rating information
+- Similar movies
+- Rating control
+
+The frontend should be visually organized and easy to demonstrate during a university presentation.
+
+==================================================
+22. API CLIENT
+==================================================
+
+Create:
+
+frontend/utils/api_client.py
+
+This module handles communication between Streamlit and FastAPI.
+
+Do not put raw HTTP logic throughout the frontend.
+
+Provide reusable functions such as:
+
+login_user()
+register_user()
+get_movies()
+get_movie()
+submit_rating()
+get_recommendations()
+get_similar_movies()
+
+Handle HTTP errors gracefully.
+
+==================================================
+23. STREAMLIT STATE
+==================================================
+
+Use Streamlit session state appropriately for:
+
+- Logged-in user
+- Authentication token
+- Selected movie
+- Recommendation settings
+
+Do not store sensitive information unnecessarily.
+
+==================================================
+24. EVALUATION
+==================================================
+
+Implement recommendation evaluation.
+
+Support:
+
+- Train/test split
+- Precision@K
+- Recall@K
+- MAE
+- RMSE
+
+Where applicable.
+
+Avoid leakage.
+
+Do not evaluate a model using information that should have been unavailable during prediction.
+
+Provide comparison results between:
+
+- Popularity
+- Collaborative
+- Content-Based
+- Hybrid
+
+The system should make it possible to determine which approach performs better.
+
+==================================================
+25. MODEL SELECTION
+==================================================
+
+The recommendation architecture should make it easy to compare algorithms.
+
+The project should clearly distinguish:
+
+Baseline:
+Popularity
+
+Model 1:
+Collaborative Filtering
+
+Model 2:
+Content-Based
+
+Model 3:
+Hybrid
+
+The hybrid system should be the primary production recommender.
+
+==================================================
+26. MODEL CACHING
+==================================================
+
+Recommendation-related computations can be expensive.
+
+Use caching appropriately.
+
+Avoid rebuilding expensive:
+
+- User-item matrices
+- Similarity matrices
+- Feature matrices
+
+on every API request.
+
+Design a reasonable model initialization/loading process.
+
+==================================================
+27. PERFORMANCE
+==================================================
+
+The system should be efficient enough for a local university project.
+
+Avoid unnecessary nested loops.
+
+Use:
+
+- NumPy
+- Pandas
+- SciPy sparse matrices
+- Scikit-learn
+
+where appropriate.
+
+Avoid recalculating the same similarity matrices repeatedly.
+
+==================================================
+28. ERROR HANDLING
+==================================================
+
+Handle:
+
+- Missing dataset
+- Invalid user ID
+- Invalid movie ID
+- Invalid rating
+- Duplicate rating
+- Empty recommendation results
+- New user
+- Database errors
+- API connection errors
+- Authentication errors
+
+Return meaningful errors.
+
+Do not silently ignore failures.
+
+==================================================
+29. TESTING
+==================================================
+
+Use pytest.
+
+Write unit and integration tests.
+
+Test:
+
+Data:
+- CSV loading
+- Validation
+- preprocessing
+
+Recommendation:
+- similarity
+- collaborative filtering
+- content-based filtering
+- hybrid recommendations
+- popular recommendations
+- cold-start behavior
+
+Database:
+- user creation
+- movie insertion
+- rating insertion
+- duplicate rating prevention
+
+API:
+- registration
+- login
+- movie endpoints
+- rating endpoints
+- recommendation endpoints
+- invalid requests
+
+The test suite should be executable with:
+
+pytest
+
+==================================================
+30. CONFIGURATION
+==================================================
+
+Centralize configuration in:
+
+config/settings.py
+
+Configuration should include:
+
+- Database URL
+- Dataset paths
+- Recommendation count
+- Minimum rating threshold
+- Hybrid alpha
+- API URL
+- Debug mode
+
+Use environment variables where appropriate.
+
+Provide:
+
+.env.example
+
+Do not commit secrets.
+
+==================================================
+31. SCRIPTS
+==================================================
+
+Create:
+
+scripts/initialize_database.py
+
+Purpose:
+- Create tables
+- Import movie data
+- Optionally import initial ratings
+
+Create:
+
+scripts/train_models.py
+
+Purpose:
+- Prepare data
+- Build feature matrices
+- Build recommendation structures
+- Save reusable artifacts if needed
+
+Create:
+
+scripts/evaluate_models.py
+
+Purpose:
+- Run evaluation
+- Print metrics
+- Compare models
+
+==================================================
+32. NOTEBOOKS
+==================================================
+
+01_eda.ipynb
+
+Perform complete exploratory analysis.
+
+02_preprocessing.ipynb
+
+Show preprocessing and feature engineering.
+
+03_recommendation_models.ipynb
+
+Demonstrate:
+
+- User-item matrix
+- Similarity
+- Collaborative filtering
+- Content-based filtering
+- Hybrid recommendation
+
+04_evaluation.ipynb
+
+Compare models using evaluation metrics.
+
+Production logic should live in Python modules under recommender/.
+
+Notebooks should demonstrate and analyze the logic rather than duplicating it.
+
+==================================================
+33. DOCUMENTATION
+==================================================
+
+Create a professional README.
+
+Include:
+
+- Project overview
+- Problem statement
+- Objectives
+- Architecture
+- Technologies
+- Dataset
+- System workflow
+- Recommendation algorithms
+- Backend architecture
+- Frontend architecture
+- Database design
+- API documentation
+- Installation
+- Dataset preparation
+- Database initialization
+- Model preparation
+- Running backend
+- Running frontend
+- Running tests
+- Evaluation
+- Limitations
+- Future improvements
+
+Explain technical decisions clearly enough for a university defense.
+
+==================================================
+34. API DOCUMENTATION
+==================================================
+
+Take advantage of FastAPI automatic documentation.
+
+Ensure:
+
+/docs
+
+and
+
+/redoc
+
+work correctly.
+
+Use meaningful endpoint descriptions and Pydantic schemas.
+
+==================================================
+35. SOFTWARE ENGINEERING REQUIREMENTS
+==================================================
+
+Use:
+
+- Separation of concerns
+- Single responsibility
+- Dependency injection
+- Reusable modules
+- Type hints
+- Docstrings
+- Proper exception handling
+- Clean naming
+- No dead code
+- No duplicated business logic
+
+Keep the architecture understandable for a student who needs to explain the project in a defense.
+
+Do not over-engineer it.
+
+==================================================
+36. SECURITY
+==================================================
+
+At minimum:
+
+- Hash passwords
+- Validate API inputs
+- Do not expose passwords
+- Do not hard-code secrets
+- Use environment variables
+- Validate authenticated users where required
+
+==================================================
+37. RUNNING THE COMPLETE SYSTEM
+==================================================
+
+The final project should support a workflow like:
+
+Step 1:
+
+Install dependencies:
+
+pip install -r requirements.txt
+
+Step 2:
+
+Initialize database:
+
+python scripts/initialize_database.py
+
+Step 3:
+
+Prepare recommendation models:
+
+python scripts/train_models.py
+
+Step 4:
+
+Start FastAPI:
+
+uvicorn app.main:app --reload
+
+Step 5:
+
+Start Streamlit:
+
+streamlit run frontend/streamlit_app.py
+
+The README must contain the exact commands actually required by the implementation.
+
+==================================================
+38. END-TO-END USER FLOW
+==================================================
+
+The final system should support this flow:
+
+User opens Streamlit
+        ↓
+Register/Login
+        ↓
+FastAPI authentication
+        ↓
+User enters application
+        ↓
+Browse movies
+        ↓
+Select a movie
+        ↓
+Rate movie
+        ↓
+Rating saved to database
+        ↓
+Recommendation engine receives user history
+        ↓
+Collaborative filtering + content-based model
+        ↓
+Hybrid model
+        ↓
+Rank recommendations
+        ↓
+Remove already-rated movies
+        ↓
+Return top-K movies
+        ↓
+FastAPI returns JSON
+        ↓
+Streamlit displays recommendations
+
+==================================================
+39. RECOMMENDATION OUTPUT
+==================================================
+
+Recommendation responses should contain meaningful structured information.
+
+For example:
+
+{
+    "movie_id": 123,
+    "title": "Example Movie",
+    "genres": ["Drama", "Sci-Fi"],
+    "score": 0.87,
+    "reason": "Recommended because you liked similar movies"
+}
+
+The exact response structure may be improved as needed.
+
+Scores should be generated by the actual recommendation algorithm.
+
+==================================================
+40. QUALITY CONTROL
+==================================================
+
+After implementation, do NOT stop.
+
+Perform a complete project review.
+
+Check:
+
+- All imports
+- Circular dependencies
+- Syntax errors
+- Type issues
+- Database models
+- API schemas
+- API routes
+- Recommendation engine
+- Frontend/API communication
+- Error handling
+- Configuration
+- Tests
+- README commands
+
+Then run:
+
+pytest
+
+and fix the failures.
+
+Verify that:
+
+- The database initializes successfully.
+- The backend starts successfully.
+- The API documentation works.
+- The frontend starts successfully.
+- Login works.
+- Movies can be browsed.
+- Ratings can be submitted.
+- Recommendations are generated.
+- Similar movies are generated.
+- New users receive fallback recommendations.
+- Already-rated movies are excluded.
+- Invalid requests are handled properly.
+
+==================================================
+41. IMPORTANT IMPLEMENTATION RULE
+==================================================
+
+Do not sacrifice correctness just to generate the project quickly.
+
+Build the system in logical stages:
+
+Stage 1:
+Project architecture
+
+Stage 2:
+Data pipeline
+
+Stage 3:
+Recommendation engine
+
+Stage 4:
+Database
+
+Stage 5:
+FastAPI backend
+
+Stage 6:
+Streamlit frontend
+
+Stage 7:
+Testing
+
+Stage 8:
+Integration
+
+Stage 9:
+Documentation
+
+After each stage, verify that the previous stage still works.
+
+==================================================
+42. ACADEMIC EXPLANABILITY
+==================================================
+
+This is a university final project.
+
+The implementation should therefore make the important Data Science concepts easy to understand.
+
+The code and documentation should clearly explain:
+
+- What a recommendation system is
+- Why the User-Item Matrix is required
+- What cosine similarity means
+- How collaborative filtering works
+- How content-based recommendation works
+- Why hybrid recommendation is useful
+- What cold start means
+- Why normalization may be necessary
+- How Precision@K and Recall@K work
+- Why train/test separation matters
+
+The implementation must be sophisticated enough to be meaningful but simple enough to explain during a university defense.
+
+==================================================
+43. FINAL DELIVERABLE
+==================================================
+
+The final result must be a complete repository containing:
+
+- Working Python source code
+- Recommendation engine
+- Data pipeline
+- Database
+- FastAPI backend
+- Streamlit frontend
+- Tests
+- Notebooks
+- Configuration
+- Documentation
+- Requirements
+- Startup instructions
+
+Do not provide only snippets.
+
+Create and integrate the actual project files.
+
+At the end, report:
+
+1. What was implemented
+2. Complete project structure
+3. Important architectural decisions
+4. Recommendation algorithms used
+5. API endpoints
+6. Database entities
+7. Frontend pages
+8. How to install
+9. How to initialize the database
+10. How to train/prepare the recommender
+11. How to run FastAPI
+12. How to run Streamlit
+13. How to run tests
+14. Evaluation methodology
+15. Any remaining limitations
+
+The final system must be a functioning end-to-end Python application, not a mockup or collection of disconnected examples.
