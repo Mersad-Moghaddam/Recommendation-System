@@ -4,11 +4,11 @@ import sys, time
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from config import settings
 from recommender import RecommendationEngine
-from recommender.data import load_movielens
+from recommender.data import load_catalog
 
 def main():
     started = time.perf_counter()
-    movies, ratings = load_movielens(settings.movies_csv, settings.ratings_csv)
+    movies, ratings = load_catalog(settings.movies_csv, settings.ratings_csv, settings.persian_movies_csv)
     engine = RecommendationEngine(movies, ratings)
     elapsed = time.perf_counter() - started
     print(f"Prepared {len(engine.movies):,} movies and {len(engine.ratings):,} ratings in {elapsed:.2f}s")

@@ -7,6 +7,13 @@ from sklearn.metrics.pairwise import cosine_similarity
 from recommender.data import build_user_item_matrix
 
 class RecommendationEngine:
+    GENRE_LABELS = {
+        "Action":"اکشن", "Adventure":"ماجراجویی", "Animation":"انیمیشن", "Children":"کودک",
+        "Comedy":"کمدی", "Crime":"جنایی", "Documentary":"مستند", "Drama":"درام",
+        "Fantasy":"فانتزی", "Film-Noir":"نوآر", "Horror":"ترسناک", "Musical":"موزیکال",
+        "Mystery":"معمایی", "Romance":"عاشقانه", "Sci-Fi":"علمی‌تخیلی", "Thriller":"هیجان‌انگیز",
+        "War":"جنگی", "Western":"وسترن",
+    }
     MOOD_GENRES = {
         "Feel-good": ["Comedy", "Romance", "Animation", "Musical"],
         "Thrilled": ["Action", "Adventure", "Thriller"],
@@ -57,13 +64,13 @@ class RecommendationEngine:
         scores = stats.score.to_dict()
         for mid in exclude or set():
             scores.pop(mid, None)
-        return self._records(self._normalize(scores), n, "Popular and consistently well rated")
+        return self._records(self._normalize(scores), n, "محبوب و دارای امتیازهای قابل اعتماد")
 
     def preference_quiz(self, mood: str, genres: list[str], era: str = "Any era",
-                        discovery: int = 50, n: int = 12) -> list[dict]:
+                        discovery: int = 50, n: int = 12, origin: str = "Any") -> list[dict]:
         """Rank real movies from a short preference form and rating confidence."""
         if mood not in self.MOOD_GENRES:
-            raise ValueError("Unknown mood")
+            raise ValueError("حال‌وهوای انتخاب‌شده معتبر نیست")
         chosen = list(dict.fromkeys(genres + self.MOOD_GENRES[mood]))
         if not chosen:
             chosen = ["Drama", "Comedy", "Adventure", "Thriller"]
@@ -86,19 +93,24 @@ class RecommendationEngine:
             if era == "2000s": return 2000 <= year < 2015
             return year >= 2015
 
+        def origin_ok(movie_id: int) -> bool:
+            is_iranian = movie_id >= 1_000_000
+            return origin == "Any" or (origin == "Iranian" and is_iranian) or (origin == "International" and not is_iranian)
+
         scores = {}
         for pos, movie_id in enumerate(self.movie_ids):
-            if era_ok(years.iloc[pos]) and fit[pos] > 0:
-                scores[movie_id] = float((1 - popular_weight) * fit[pos] + popular_weight * quality.get(movie_id, 0))
-        reason = f"Matches your {mood.lower()} mood and {', '.join(chosen[:3])} preference"
+            if era_ok(years.iloc[pos]) and origin_ok(movie_id) and fit[pos] > 0:
+                scores[movie_id] = float((1 - popular_weight) * fit[pos] + popular_weight * quality.get(movie_id, .5))
+        labels = [self.GENRE_LABELS.get(genre, genre) for genre in chosen[:3]]
+        reason = f"هماهنگ با حال‌وهوای انتخابی و ژانرهای {'، '.join(labels)}"
         return self._records(scores, n, reason)
 
     def similar_movies(self, movie_id: int, n: int = 10) -> list[dict]:
         if movie_id not in self.id_to_position:
-            raise KeyError(f"Movie {movie_id} does not exist")
+            raise KeyError(f"فیلم با شناسهٔ {movie_id} وجود ندارد")
         row = cosine_similarity(self.genre_matrix[self.id_to_position[movie_id]], self.genre_matrix)[0]
         scores = {mid: float(row[pos]) for mid, pos in self.id_to_position.items() if mid != movie_id}
-        return self._records(scores, n, "Similar genres")
+        return self._records(scores, n, "شباهت ژانری با فیلم انتخاب‌شده")
 
     def collaborative_scores(self, user_id: int) -> dict[int, float]:
         history = self.ratings[self.ratings.userId == user_id]
@@ -136,16 +148,16 @@ class RecommendationEngine:
 
     def recommend(self, user_id: int, method: str = "hybrid", n: int = 10, alpha: float = .65) -> list[dict]:
         if method not in {"hybrid", "collaborative", "content", "popular"}:
-            raise ValueError("method must be hybrid, collaborative, content, or popular")
+            raise ValueError("روش باید ترکیبی، مشارکتی، محتوایی یا محبوبیت باشد")
         rated = set(self.ratings[self.ratings.userId == user_id].movieId.astype(int))
         if method == "popular" or len(rated) < self.cold_start_ratings:
             return self.popular(n, rated)
         collaborative = self._normalize(self.collaborative_scores(user_id))
         if method == "collaborative":
-            return self._records(collaborative, n, "People with similar taste also enjoyed it")
+            return self._records(collaborative, n, "کاربران با سلیقهٔ مشابه این فیلم را پسندیده‌اند")
         content = self._normalize(self.content_scores(user_id))
         if method == "content":
-            return self._records(content, n, "Matches genres you rate highly")
+            return self._records(content, n, "هماهنگ با ژانرهای محبوب شما")
         candidates = set(collaborative) | set(content)
         scores = {mid: alpha * collaborative.get(mid, 0) + (1-alpha) * content.get(mid, 0) for mid in candidates}
-        return self._records(scores, n, "Blends similar taste with your favorite genres") or self.popular(n, rated)
+        return self._records(scores, n, "ترکیب سلیقهٔ کاربران مشابه و ژانرهای محبوب شما") or self.popular(n, rated)

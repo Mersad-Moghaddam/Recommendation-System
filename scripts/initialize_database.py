@@ -6,14 +6,16 @@ from sqlalchemy import func, select
 from config import settings
 from database.database import SessionLocal, create_tables
 from database.models import Movie, Rating, User
-from recommender.data import load_movielens
+from recommender.data import load_catalog
 
 def main():
-    movies, ratings = load_movielens(settings.movies_csv, settings.ratings_csv)
+    movies, ratings = load_catalog(settings.movies_csv, settings.ratings_csv, settings.persian_movies_csv)
     create_tables()
     with SessionLocal() as db:
-        if not db.scalar(select(func.count()).select_from(Movie)):
-            db.add_all([Movie(id=int(r.movieId), title=r.title, genres=r.genres) for r in movies.itertuples()])
+        existing_movie_ids = set(db.scalars(select(Movie.id)))
+        db.add_all([Movie(id=int(r.movieId), title=r.title, genres=r.genres)
+                    for r in movies.itertuples() if int(r.movieId) not in existing_movie_ids])
+        db.commit()
         existing_users = set(db.scalars(select(User.id).where(User.is_dataset_user.is_(True))))
         user_ids = set(ratings.userId.astype(int))
         db.add_all([User(id=uid, username=f"movielens_{uid}", password_hash="dataset-only", is_dataset_user=True) for uid in user_ids-existing_users])

@@ -6,6 +6,7 @@ def sample_engine():
     movies = pd.DataFrame([
         (1,"Space One (2020)","Sci-Fi|Adventure"),(2,"Space Two (2021)","Sci-Fi|Adventure"),
         (3,"Quiet Drama (2019)","Drama"),(4,"Big Drama (2018)","Drama"),
+        (1000001,"فیلم ایرانی (2020)","Drama|Mystery"),
     ], columns=["movieId","title","genres"])
     ratings = pd.DataFrame([(1,1,5.),(1,3,2.),(2,1,5.),(2,2,4.5),(2,4,1.),(3,3,5.),(3,4,4.5)], columns=["userId","movieId","rating"])
     return RecommendationEngine(movies, ratings, cold_start_ratings=2)
@@ -33,4 +34,8 @@ def test_preference_quiz_uses_mood_and_era():
     results = sample_engine().preference_quiz("Escape", ["Sci-Fi"], "Modern", 60, 2)
     assert results
     assert results[0]["movie_id"] in {1, 2}
-    assert "escape" in results[0]["reason"]
+    assert "حال‌وهوای" in results[0]["reason"]
+
+def test_quiz_can_limit_results_to_iranian_cinema():
+    results = sample_engine().preference_quiz("Thoughtful", ["Drama"], origin="Iranian")
+    assert results[0]["movie_id"] == 1000001

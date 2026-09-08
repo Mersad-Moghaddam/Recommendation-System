@@ -16,6 +16,19 @@ def load_movielens(movies_path: Path | str, ratings_path: Path | str) -> tuple[p
     ratings = ratings[ratings.rating.between(0.5, 5.0)]
     return movies, ratings
 
+def load_catalog(movies_path: Path | str, ratings_path: Path | str,
+                 persian_path: Path | str | None = None) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Load MovieLens and optionally append the documented Iranian catalog."""
+    movies, ratings = load_movielens(movies_path, ratings_path)
+    if persian_path and Path(persian_path).exists():
+        supplemental = pd.read_csv(persian_path)
+        required = {"movieId", "title", "genres"}
+        if not required <= set(supplemental.columns):
+            raise ValueError("ستون‌های کاتالوگ سینمای ایران معتبر نیستند")
+        movies = pd.concat([movies, supplemental[list(required)]], ignore_index=True)
+        movies = movies.drop_duplicates("movieId", keep="last")
+    return movies, ratings
+
 def build_user_item_matrix(ratings: pd.DataFrame) -> pd.DataFrame:
     """NaN means 'not rated'; zeros are used only inside cosine calculations."""
     return ratings.pivot_table(index="userId", columns="movieId", values="rating", aggfunc="mean")

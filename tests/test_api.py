@@ -6,5 +6,6 @@ def test_health():
     assert health() == {"status": "ok"}
 
 def test_quiz_input_validation():
-    quiz = QuizIn(mood="Thoughtful", genres=["Drama"], era="Classics", discovery=25)
+    quiz = QuizIn(mood="Thoughtful", genres=["Drama"], era="Classics", discovery=25, origin="Iranian")
     assert quiz.n == 12
+    assert quiz.origin == "Iranian"

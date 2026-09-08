@@ -1,33 +1,33 @@
-# CineMatch — Movie Recommendation System
+# سینمچ — سامانهٔ هوشمند پیشنهاد فیلم
 
-CineMatch is a complete but deliberately small university project that demonstrates how a modern recommendation system works. It uses real MovieLens ratings, a FastAPI service, SQLite, and a polished Streamlit interface. The project favors code that is easy to explain in a defense over production infrastructure.
+سینمچ یک پروژهٔ دانشگاهی کامل اما ساده و توضیح‌پذیر است. این سامانه با داده‌های واقعی MovieLens، کاتالوگ مکمل سینمای ایران، FastAPI، SQLite و رابط فارسی Streamlit ساخته شده است.
 
-## What the project demonstrates
+## امکانات
 
-- Confidence-weighted popularity recommendations for new users
-- Item-based collaborative filtering from rating behavior
-- Genre-based content recommendations using TF–IDF and cosine similarity
-- A normalized hybrid score combining collaborative and content signals
-- An AI Movie Concierge that turns a four-question form into recommendations
-- Registration, login, password hashing, ratings, browsing, and recommendations
-- Clean separation between UI, API/services, database, and ML code
+- رابط کاملاً راست‌به‌چپ با فونت آزاد [استعداد](https://github.com/aminabedi68/Estedad)
+- ۹٬۷۴۲ فیلم MovieLens و ۳۰ فیلم منتخب سینمای ایران
+- پیشنهادگر هوشمند بدون نیاز به حساب کاربری، بر اساس حال‌وهوا، ژانر، دوره و کشور
+- فیلتر اختصاصی «سینمای ایران» در جست‌وجو و پیشنهادگر
+- پیشنهاد مشارکتی بر اساس الگوی امتیاز کاربران هم‌سلیقه
+- پیشنهاد محتوایی بر اساس ژانرها و شباهت کسینوسی
+- مدل ترکیبی و راهکار شروع سرد برای کاربر تازه
+- ثبت‌نام، ورود، رمز عبور هش‌شده و ثبت یا ویرایش امتیاز
+- توضیح فارسی دلیل هر پیشنهاد
 
-The default dataset is [MovieLens latest-small](https://files.grouplens.org/datasets/movielens/), maintained by GroupLens. It contains roughly 100,000 ratings across about 9,700 movies and is intended for education/research use; read the downloaded dataset README for its terms.
-
-## Architecture
+## معماری
 
 ```text
-Streamlit UI  →  FastAPI routes  →  Services  →  SQLite
+رابط فارسی Streamlit ←HTTP/JSON→ FastAPI ←→ SQLite
                                       ↓
-                            RecommendationEngine
-                       (Pandas + NumPy + scikit-learn)
+                         RecommendationEngine
+                    Pandas + NumPy + scikit-learn
 ```
 
-The frontend contains presentation and API calls only. Recommendation mathematics lives in `recommender/engine.py`, independent of FastAPI and Streamlit. See [docs/system-design.md](docs/system-design.md) for the data flow and tradeoffs.
+فرانت‌اند فقط مسئول نمایش و فراخوانی API است. تمام منطق علمی در `recommender/engine.py` قرار دارد و از FastAPI و Streamlit مستقل است. جزئیات بیشتر در [سند طراحی سامانه](docs/system-design.md) آمده است.
 
-## Quick start
+## نصب و آماده‌سازی
 
-Python 3.11–3.13 is recommended. From the repository root:
+استفاده از Python 3.11 تا 3.14 پیشنهاد می‌شود:
 
 ```bash
 python -m venv .venv
@@ -38,84 +38,72 @@ python scripts/initialize_database.py
 python scripts/train_models.py
 ```
 
-Start the API in terminal one:
+دستور `initialize_database.py` فایل مکمل `data/persian_movies.csv` را نیز وارد پایگاه داده می‌کند. برای این فیلم‌ها امتیاز ساختگی تولید نشده است؛ جزئیات منابع در [منابع سینمای ایران](data/persian_movies_sources.md) ثبت شده‌اند.
+
+## اجرای پروژه
+
+در ترمینال اول API را اجرا کنید:
 
 ```bash
 source .venv/bin/activate
 uvicorn app.main:app --reload
 ```
 
-Start the UI in terminal two:
+در ترمینال دوم رابط کاربری را اجرا کنید:
 
 ```bash
 source .venv/bin/activate
 streamlit run frontend/streamlit_app.py
 ```
 
-Open `http://localhost:8501`. Interactive API documentation is at `http://127.0.0.1:8000/docs`; ReDoc is at `/redoc`.
+- رابط کاربری: `http://127.0.0.1:8501`
+- مستندات API: `http://127.0.0.1:8000/docs`
 
-## Demo flow
+## پیشنهادگر هوشمند چگونه کار می‌کند؟
 
-1. Register a local account.
-2. Search the catalog and rate at least three movies.
-3. Open **For you** and compare hybrid, collaborative, content, and popular results.
-4. Explain why rated movies are excluded and why a new user sees the popularity baseline.
+۱. پاسخ‌های فرم به ژانرهای مرتبط تبدیل می‌شوند.
+۲. ژانرها با TF–IDF به یک بردار سلیقه تبدیل می‌شوند.
+۳. شباهت کسینوسی، نزدیکی بردار کاربر و هر فیلم را اندازه می‌گیرد.
+۴. دورهٔ زمانی و انتخاب سینمای ایران یا جهان، نامزدها را فیلتر می‌کند.
+۵. امتیاز وزن‌دار MovieLens کیفیت عمومی را وارد رتبه‌بندی می‌کند.
+۶. کنترل «محبوب تا کمتر دیده‌شده» وزن شباهت شخصی و محبوبیت را تغییر می‌دهد.
 
-## API
+فیلم‌های ایرانی مکمل امتیاز MovieLens ندارند؛ بنابراین در حالت ایرانی بر پایهٔ شباهت محتوایی رتبه‌بندی می‌شوند و هیچ امتیاز جعلی به آن‌ها نسبت داده نمی‌شود.
 
-| Method | Endpoint | Purpose |
+## مدل‌های دارای سابقهٔ کاربر
+
+- **محبوبیت:** میانگین وزن‌دار بیزی تا یک امتیاز پنج‌ستارهٔ تنها، رتبهٔ غیرواقعی نسازد.
+- **مشارکتی:** فیلم‌ها را با بردار امتیاز کاربران و شباهت کسینوسی مقایسه می‌کند.
+- **محتوایی:** از فیلم‌هایی با امتیاز ۳٫۵ به بالا، نمایهٔ ژانری کاربر را می‌سازد.
+- **ترکیبی:** امتیاز نرمال‌شدهٔ مشارکتی و محتوایی را با وزن‌های ۰٫۶۵ و ۰٫۳۵ ادغام می‌کند.
+
+مقادیر خالی ماتریس کاربر–فیلم به معنی «بدون امتیاز» هستند، نه امتیاز صفر. صفر فقط هنگام محاسبهٔ کسینوسی و به معنی نبود تعامل استفاده می‌شود.
+
+## مسیرهای مهم API
+
+| روش | مسیر | کاربرد |
 |---|---|---|
-| GET | `/health` | Health check |
-| POST | `/auth/register` | Create account and return token |
-| POST | `/auth/login` | Authenticate and return token |
-| GET | `/movies?q=` | Browse/search movies |
-| GET | `/movies/{id}` | Movie details |
-| POST | `/ratings` | Create or update the current user's rating |
-| GET | `/users/me/ratings` | Current user's rating history |
-| GET | `/recommendations/me?method=hybrid` | Personalized/cold-start list |
-| POST | `/recommendations/quiz` | Mood, genre, era, and discovery recommendations |
-| GET | `/movies/{id}/similar` | Genre-similar movies |
+| GET | `/health` | سلامت سامانه |
+| POST | `/auth/register` | ساخت حساب |
+| POST | `/auth/login` | ورود |
+| GET | `/movies?persian_only=true` | جست‌وجوی فیلم‌های ایرانی |
+| POST | `/ratings` | ثبت یا ویرایش امتیاز |
+| GET | `/recommendations/me` | پیشنهاد شخصی بر اساس سابقه |
+| POST | `/recommendations/quiz` | پیشنهاد بر اساس فرم کوتاه |
+| GET | `/movies/{id}/similar` | فیلم‌های مشابه |
 
-Protected endpoints accept `Authorization: Bearer <token>`.
-
-## Algorithms in plain language
-
-**Popularity** uses a Bayesian-style weighted mean. A movie with one five-star rating cannot outrank a consistently strong film with many ratings.
-
-**Collaborative filtering** represents each movie by the users who rated it. Cosine similarity finds movies with similar rating patterns. A user's centered ratings weight candidate movies, and watched items are removed.
-
-**Content-based filtering** converts pipe-separated genres into TF–IDF vectors. It builds a taste profile from movies the user rated at least 3.5 and retrieves the closest unseen genre vectors.
-
-**Hybrid** min–max normalizes both candidate scores and combines them: `0.65 × collaborative + 0.35 × content`. With fewer than three ratings, it automatically falls back to popularity.
-
-**AI Movie Concierge** converts the visitor's mood and selected genres into the same TF–IDF feature space as the catalog. Cosine similarity measures fit, an era choice filters candidates, and a discovery slider controls how much the confidence-weighted community score influences ranking. It needs no account or rating history.
-
-Missing values in the user–item matrix mean “not rated,” not a zero-star opinion. They are filled with zero only at the cosine-computation boundary, where zero represents no observed interaction.
-
-## Evaluation
-
-Run a small leave-one-out ranking experiment:
-
-```bash
-python scripts/evaluate_models.py
-```
-
-For each eligible user, their latest rating is hidden, models train without it, and HitRate@10 records whether the held-out movie appears. This avoids using the answer during training. Ranking metrics are more appropriate here than RMSE because the application returns ordered lists rather than explicit rating predictions.
-
-## Tests
+## آزمون و ارزیابی
 
 ```bash
 pytest
+python scripts/evaluate_models.py
 ```
 
-Tests cover missing-value semantics, content similarity, watched-item exclusion, cold start, invalid methods, password hashing, signed tokens, and the health endpoint.
+ارزیابی نمونه با روش leave-one-out انجام می‌شود: آخرین امتیاز هر کاربر پنهان و سپس بررسی می‌شود که فیلم پنهان‌شده در ده پیشنهاد نخست قرار گرفته است یا نه. توابع Precision@K، Recall@K، MAE و RMSE نیز در `recommender/metrics.py` وجود دارند.
 
-## Scope and limitations
+## محدودیت‌ها
 
-- This is a local academic app, not a production service. Tokens use a compact educational HMAC implementation and expire after one day.
-- Genre-only content features are explainable but less expressive than plots, cast, tags, or embeddings.
-- The model cache is process-local and invalidates when ratings change.
-- MovieLens has no poster images, so the UI uses typography and genre metadata rather than fake posters.
-- Offline evaluation is sampled to stay fast on a laptop.
-
-Natural extensions are tag features, time-aware splitting, Precision@K/Recall@K across several relevant held-out items, matrix factorization, and poster metadata from a separately licensed API.
+- این پروژه برای ارائهٔ دانشگاهی و اجرای محلی است، نه محیط عملیاتی بزرگ.
+- ویژگی محتوایی فقط از ژانر استفاده می‌کند؛ افزودن کارگردان، بازیگر، خلاصه و embedding می‌تواند کیفیت را بهتر کند.
+- فونت Estedad تحت مجوز OFL همراه پروژه نگهداری می‌شود.
+- داده‌های اصلی MovieLens به دلیل شرایط بازنشر در Git قرار نمی‌گیرند و با اسکریپت رسمی دانلود می‌شوند.

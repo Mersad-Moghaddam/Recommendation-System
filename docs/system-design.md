@@ -1,41 +1,43 @@
-# CineMatch system design
+# طراحی سامانهٔ سینمچ
 
-## Requirements and scope
+## نیازمندی و محدوده
 
-CineMatch turns real MovieLens movies and ratings into explainable recommendations, exposes them through HTTP, and lets a student demonstrate the end-to-end flow in Streamlit. It runs as two local processes and one SQLite file. Distributed deployment, third-party identity, queues, and monitoring are intentionally out of scope.
+سینمچ از فیلم‌ها و امتیازهای واقعی MovieLens و یک کاتالوگ مستند سینمای ایران، پیشنهاد توضیح‌پذیر می‌سازد. خروجی از طریق HTTP در اختیار رابط فارسی Streamlit قرار می‌گیرد. پروژه برای اجرای محلی و دفاع دانشگاهی طراحی شده است؛ استقرار توزیع‌شده، صف پیام و سامانهٔ هویت بیرونی عمداً خارج از محدوده‌اند.
 
-## Components
+## اجزا
 
 ```text
-Browser
-  └─ Streamlit: session state, forms, movie cards
+مرورگر
+  └─ Streamlit: رابط RTL، فرم‌ها و وضعیت نشست
        └─ HTTP/JSON
-            └─ FastAPI: validation and authentication
-                 ├─ User/Movie/Rating services ── SQLite
-                 └─ Recommendation service
+            └─ FastAPI: اعتبارسنجی و احراز هویت
+                 ├─ سرویس کاربر، فیلم و امتیاز ── SQLite
+                 └─ سرویس پیشنهاد
                       └─ RecommendationEngine
-                           ├─ user–item matrix
-                           ├─ genre TF–IDF
-                           └─ on-demand cosine similarity
+                           ├─ ماتریس کاربر–فیلم
+                           ├─ TF–IDF ژانرها
+                           └─ شباهت کسینوسی برحسب نیاز
 ```
 
-## Main data flow
+## جریان داده
 
-1. `download_data.py` obtains the official MovieLens archive; no dataset is embedded in source code.
-2. `initialize_database.py` validates CSV columns, creates dataset-only users required by rating foreign keys, then imports movies and ratings.
-3. Registration creates a salted scrypt password hash. Login returns a signed, expiring bearer token.
-4. A rating is upserted under the authenticated user and changes the cache signature.
-5. The next recommendation request rebuilds the cached feature structures from SQLite, ranks unseen candidates, and returns scores plus human-readable reasons.
-6. Visitors without history can submit the AI Concierge form. Mood and genre answers become a TF–IDF query vector, cosine similarity measures catalog fit, the era filters candidates, and the discovery value controls the popularity-quality blend.
+۱. `download_data.py` آرشیو رسمی MovieLens را دریافت می‌کند؛ دادهٔ اصلی داخل کد قرار نمی‌گیرد.
+۲. `initialize_database.py` ستون‌ها را اعتبارسنجی و فیلم‌ها، کاربران داده‌ای و امتیازها را وارد SQLite می‌کند.
+۳. همان اسکریپت، فیلم‌های مستندشدهٔ `data/persian_movies.csv` را با شناسه‌های محلی جداگانه وارد می‌کند؛ برای آن‌ها امتیاز جعلی نمی‌سازد.
+۴. ثبت‌نام یک هش scrypt نمک‌دار می‌سازد و ورود، توکن امضاشده و زمان‌دار برمی‌گرداند.
+۵. ثبت امتیاز، امضای cache را تغییر می‌دهد تا ساختار مدل در درخواست بعدی تازه شود.
+۶. فرم هوشمند، حال‌وهوا و ژانر را به بردار TF–IDF تبدیل می‌کند؛ شباهت کسینوسی، دوره و کشور، نامزدها را رتبه‌بندی می‌کنند.
+۷. مدل دارای سابقه، امتیاز مشارکتی و محتوایی را نرمال و ترکیب می‌کند و فیلم‌های دیده‌شده را کنار می‌گذارد.
 
-## Design choices and tradeoffs
+## تصمیم‌ها و مصالحه‌ها
 
-- **SQLite:** zero setup and easy inspection; unsuitable for many concurrent writers.
-- **Single-process cache:** easy to teach and sufficient locally; each server process would own a separate cache.
-- **On-demand item similarities:** avoids a quadratic dense movie-by-movie matrix; repeated requests do a little more CPU work.
-- **Genre TF–IDF:** transparent and deterministic; it cannot capture story, cast, or mood.
-- **HMAC token + scrypt:** keeps dependencies and code small while avoiding plaintext passwords; a deployed application should use reviewed authentication libraries and rotated secrets.
+- **SQLite:** بدون تنظیمات و قابل مشاهده برای دانشجو است، اما برای نویسنده‌های هم‌زمان زیاد مناسب نیست.
+- **cache تک‌فرایندی:** ساده و مناسب اجرای محلی است؛ هر پردازش سرور cache جدا دارد.
+- **شباهت برحسب نیاز:** از ماتریس چگال و درجه‌دوی فیلم×فیلم جلوگیری می‌کند، در برابر کمی محاسبهٔ بیشتر در درخواست.
+- **TF–IDF ژانر:** قطعی و توضیح‌پذیر است، اما داستان، بازیگر و حال‌وهوای ظریف را نمی‌بیند.
+- **فیلم ایرانی بدون امتیاز ساختگی:** مسیر محتوایی آن‌ها را قابل پیشنهاد می‌کند؛ کیفیت جمعی تا جمع‌آوری امتیاز واقعی کاربر محلی خنثی می‌ماند.
+- **توکن HMAC و scrypt:** برای آموزش کوچک و قابل فهم‌اند؛ سامانهٔ عملیاتی باید از کتابخانهٔ هویت بازبینی‌شده و چرخش کلید استفاده کند.
 
-## Failure behavior
+## رفتار خطا
 
-Invalid input receives a 4xx response, missing movies receive 404, duplicate usernames receive 409, and unavailable frontend HTTP calls display an actionable error. New users never fail: the engine uses popularity until three ratings are available.
+ورودی نامعتبر پاسخ 4xx، فیلم ناموجود پاسخ 404، نام کاربری تکراری پاسخ 409 و خطای اتصال پیام فارسی قابل اقدام می‌دهد. کاربر تازه هیچ‌گاه با شکست مدل روبه‌رو نمی‌شود و تا سه امتیاز، پیشنهاد محبوبیت را دریافت می‌کند.

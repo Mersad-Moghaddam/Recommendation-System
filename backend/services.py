@@ -9,7 +9,7 @@ class UserService:
     @staticmethod
     def register(db: Session, username: str, password: str) -> User:
         if db.scalar(select(User).where(User.username == username)):
-            raise ValueError("Username is already registered")
+            raise ValueError("این نام کاربری قبلاً ثبت شده است")
         user = User(username=username, password_hash=hash_password(password))
         db.add(user); db.commit(); db.refresh(user)
         return user
@@ -18,15 +18,18 @@ class UserService:
     def login(db: Session, username: str, password: str) -> tuple[User, str]:
         user = db.scalar(select(User).where(User.username == username, User.is_dataset_user.is_(False)))
         if not user or not verify_password(password, user.password_hash):
-            raise ValueError("Incorrect username or password")
+            raise ValueError("نام کاربری یا رمز عبور نادرست است")
         return user, create_token(user.id)
 
 class MovieService:
     @staticmethod
-    def list(db: Session, query: str = "", skip: int = 0, limit: int = 24) -> list[Movie]:
+    def list(db: Session, query: str = "", skip: int = 0, limit: int = 24,
+             persian_only: bool = False) -> list[Movie]:
         stmt = select(Movie)
         if query:
             stmt = stmt.where(Movie.title.ilike(f"%{query}%"))
+        if persian_only:
+            stmt = stmt.where(Movie.id >= 1_000_000)
         return list(db.scalars(stmt.order_by(Movie.title).offset(skip).limit(limit)))
 
     @staticmethod
@@ -37,7 +40,7 @@ class RatingService:
     @staticmethod
     def upsert(db: Session, user_id: int, movie_id: int, value: float) -> Rating:
         if not db.get(Movie, movie_id):
-            raise KeyError("Movie not found")
+            raise KeyError("فیلم پیدا نشد")
         rating = db.scalar(select(Rating).where(Rating.user_id == user_id, Rating.movie_id == movie_id))
         if rating:
             rating.value = value
@@ -52,7 +55,8 @@ class RecommendationService:
 
     @staticmethod
     def engine(db: Session) -> RecommendationEngine:
-        signature = db.execute(select(func.count(Rating.id), func.max(Rating.id), func.sum(Rating.value))).one()
+        rating_signature = db.execute(select(func.count(Rating.id), func.max(Rating.id), func.sum(Rating.value))).one()
+        signature = (*rating_signature, db.scalar(select(func.count(Movie.id))))
         if RecommendationService._cached_engine is not None and signature == RecommendationService._cached_signature:
             return RecommendationService._cached_engine
         movies = pd.read_sql(select(Movie.id.label("movieId"), Movie.title, Movie.genres), db.connection())

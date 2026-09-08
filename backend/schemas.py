@@ -39,5 +39,6 @@ class QuizIn(BaseModel):
     mood: Literal["Feel-good", "Thrilled", "Thoughtful", "Escape", "Comfort", "Surprise me"]
     genres: list[str] = Field(default_factory=list, max_length=5)
     era: Literal["Any era", "Classics", "80s & 90s", "2000s", "Modern"] = "Any era"
+    origin: Literal["Any", "Iranian", "International"] = "Any"
     discovery: int = Field(default=50, ge=0, le=100)
     n: int = Field(default=12, ge=1, le=30)
