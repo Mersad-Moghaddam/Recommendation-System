@@ -1,10 +1,11 @@
 # سینمچ — سامانهٔ هوشمند پیشنهاد فیلم
 
-سینمچ یک پروژهٔ دانشگاهی کامل اما ساده و توضیح‌پذیر است. این سامانه با داده‌های واقعی MovieLens، کاتالوگ مکمل سینمای ایران، FastAPI، SQLite و رابط فارسی Streamlit ساخته شده است.
+سینمچ یک پروژهٔ دانشگاهی کامل اما ساده و توضیح‌پذیر است. این سامانه با داده‌های واقعی MovieLens، کاتالوگ مکمل سینمای ایران، FastAPI، SQLite و رابط حرفه‌ای React + Vite ساخته شده است.
 
 ## امکانات
 
-- رابط کاملاً راست‌به‌چپ با فونت آزاد [استعداد](https://github.com/aminabedi68/Estedad)
+- رابط واکنش‌گرا و کاملاً راست‌به‌چپ با React، Vite و فونت آزاد [استعداد](https://github.com/aminabedi68/Estedad)
+- ناوبری دسکتاپ و موبایل، dialog قابل دسترس، loading skeleton و پیام خطای فارسی
 - ۹٬۷۴۲ فیلم MovieLens و ۳۰ فیلم منتخب سینمای ایران
 - پیشنهادگر هوشمند بدون نیاز به حساب کاربری، بر اساس حال‌وهوا، ژانر، دوره و کشور
 - فیلتر اختصاصی «سینمای ایران» در جست‌وجو و پیشنهادگر
@@ -17,13 +18,13 @@
 ## معماری
 
 ```text
-رابط فارسی Streamlit ←HTTP/JSON→ FastAPI ←→ SQLite
+رابط React + Vite ←HTTP/JSON→ FastAPI ←→ SQLite
                                       ↓
                          RecommendationEngine
                     Pandas + NumPy + scikit-learn
 ```
 
-فرانت‌اند فقط مسئول نمایش و فراخوانی API است. تمام منطق علمی در `recommender/engine.py` قرار دارد و از FastAPI و Streamlit مستقل است. جزئیات بیشتر در [سند طراحی سامانه](docs/system-design.md) آمده است.
+فرانت‌اند فقط مسئول نمایش و فراخوانی API است. تمام منطق علمی در `recommender/engine.py` قرار دارد و از FastAPI و React مستقل است. جزئیات بیشتر در [سند طراحی سامانه](docs/system-design.md) آمده است.
 
 ## نصب و آماده‌سازی
 
@@ -33,6 +34,7 @@
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+npm install --prefix frontend
 python scripts/download_data.py
 python scripts/initialize_database.py
 python scripts/train_models.py
@@ -52,11 +54,10 @@ uvicorn app.main:app --reload
 در ترمینال دوم رابط کاربری را اجرا کنید:
 
 ```bash
-source .venv/bin/activate
-streamlit run frontend/streamlit_app.py
+npm run dev --prefix frontend
 ```
 
-- رابط کاربری: `http://127.0.0.1:8501`
+- رابط کاربری: `http://127.0.0.1:5173`
 - مستندات API: `http://127.0.0.1:8000/docs`
 
 ## پیشنهادگر هوشمند چگونه کار می‌کند؟

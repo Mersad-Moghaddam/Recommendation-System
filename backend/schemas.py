@@ -28,6 +28,16 @@ class RatingOut(RatingIn):
     id: int
     user_id: int
 
+class RatingDetailOut(RatingOut):
+    title: str
+    genres: list[str]
+
+class StatsOut(BaseModel):
+    movies: int
+    ratings: int
+    users: int
+    persian_movies: int
+
 class RecommendationOut(BaseModel):
     movie_id: int
     title: str

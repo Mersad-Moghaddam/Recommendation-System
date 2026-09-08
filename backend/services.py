@@ -24,12 +24,14 @@ class UserService:
 class MovieService:
     @staticmethod
     def list(db: Session, query: str = "", skip: int = 0, limit: int = 24,
-             persian_only: bool = False) -> list[Movie]:
+             persian_only: bool = False, genre: str = "") -> list[Movie]:
         stmt = select(Movie)
         if query:
             stmt = stmt.where(Movie.title.ilike(f"%{query}%"))
         if persian_only:
             stmt = stmt.where(Movie.id >= 1_000_000)
+        if genre:
+            stmt = stmt.where(Movie.genres.contains(genre))
         return list(db.scalars(stmt.order_by(Movie.title).offset(skip).limit(limit)))
 
     @staticmethod
