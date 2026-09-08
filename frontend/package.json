@@ -10,7 +10,7 @@
     "lint": "eslint src"
   },
   "dependencies": {
-    "lucide-react": "latest",
+    "@phosphor-icons/react": "^2.1.10",
     "react": "^19.3.0-canary-f1f7ed2a-20260904",
     "react-dom": "^19.3.0-canary-f1f7ed2a-20260904"
   },

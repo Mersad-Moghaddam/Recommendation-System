@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ArrowLeft, BrainCircuit, Database, Film, Sparkles, Users } from 'lucide-react'
+import { ArrowLeft, Brain as BrainCircuit, Database, FilmReel as Film, Sparkle as Sparkles, UsersThree as Users } from '@phosphor-icons/react'
 import { api } from '../api'
 import { CompactMovieGrid } from '../components/MovieGrid'
 import { Hero, SectionTitle } from '../components/UI'

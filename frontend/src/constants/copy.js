@@ -36,12 +36,12 @@ export const NAV_ITEMS = [
 ]
 
 export const MOOD_OPTIONS = [
-  ['Feel-good', 'حال‌خوب‌کن', '☀️'],
-  ['Thrilled', 'پرهیجان', '⚡'],
-  ['Thoughtful', 'فکری و عمیق', '◐'],
-  ['Escape', 'فرار از روزمرگی', '✦'],
-  ['Comfort', 'آرام و صمیمی', '☕'],
-  ['Surprise me', 'غافلگیرم کن', '◆'],
+  ['Feel-good', 'حال‌خوب‌کن'],
+  ['Thrilled', 'پرهیجان'],
+  ['Thoughtful', 'فکری و عمیق'],
+  ['Escape', 'فرار از روزمرگی'],
+  ['Comfort', 'آرام و صمیمی'],
+  ['Surprise me', 'غافلگیرم کن'],
 ]
 
 export const ERA_OPTIONS = [
@@ -125,7 +125,16 @@ export const COPY = {
     titleStart: 'حال تو،',
     titleAccent: 'فیلم تو.',
     description: 'پنج انتخاب ساده؛ یک فهرست شخصی، قابل توضیح و آمادهٔ تماشا.',
-    progress: 'پنج پرده تا پیشنهاد نهایی',
+    progress: 'پنج انتخاب کوتاه تا فهرست امشب',
+    summaryTitle: 'انتخاب‌های امشب',
+    summaryHint: 'این خلاصه هم‌زمان با انتخاب‌های تو به‌روز می‌شود.',
+    summaryMood: 'حال‌وهوا',
+    summaryGenres: 'ژانرها',
+    summaryOrigin: 'مبدأ سینما',
+    summaryEra: 'دورهٔ زمانی',
+    summaryDiscovery: 'میزان کشف',
+    noGenres: 'آزاد؛ بدون محدودیت ژانر',
+    discoveryValue: (value) => `${value}٪ ماجراجویی`,
     moodTitle: 'امشب چه حسی می‌خواهی؟',
     moodHint: 'یک گزینه را انتخاب کن',
     genresTitle: 'کدام دنیاها جذبت می‌کنند؟',

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ArrowRight, CalendarDays, Database, Info, Sparkles, Star, UsersRound } from 'lucide-react'
+import { ArrowRight, CalendarBlank as CalendarDays, Database, Info, Sparkle as Sparkles, Star, UsersThree as UsersRound } from '@phosphor-icons/react'
 import { api } from '../api'
 import { DetailArtwork } from '../components/MovieArtwork'
 import MovieGrid from '../components/MovieGrid'

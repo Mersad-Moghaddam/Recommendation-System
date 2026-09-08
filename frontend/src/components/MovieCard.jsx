@@ -1,4 +1,4 @@
-import { ArrowUpLeft, Sparkles, Star } from 'lucide-react'
+import { ArrowUpLeft, Sparkle as Sparkles, Star } from '@phosphor-icons/react'
 import { COPY } from '../constants/copy'
 import { faNumber, genreFa, titleWithoutYear } from '../utils'
 import { CardArtwork } from './MovieArtwork'

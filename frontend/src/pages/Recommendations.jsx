@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { RefreshCw } from 'lucide-react'
+import { ArrowClockwise as RefreshCw } from '@phosphor-icons/react'
 import { api } from '../api'
 import MovieGrid from '../components/MovieGrid'
 import { ErrorMessage, Hero, SectionTitle } from '../components/UI'
@@ -43,7 +43,7 @@ export default function Recommendations({ user, token, onRate, onDetails }) {
       <div className="method-bar">
         <div className="segmented" aria-label={COPY.recommendations.listEyebrow}>
           {METHOD_OPTIONS.map(([value, label]) => (
-            <button type="button" key={value} className={method === value ? 'selected' : ''} onClick={() => changeMethod(value)}>{label}</button>
+            <button type="button" key={value} aria-pressed={method === value} className={method === value ? 'selected' : ''} onClick={() => changeMethod(value)}>{label}</button>
           ))}
         </div>
         <button type="button" className="refresh" onClick={reload}>

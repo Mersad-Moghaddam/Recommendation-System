@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ChevronLeft, ChevronRight, Search, SlidersHorizontal } from 'lucide-react'
+import { CaretLeft as ChevronLeft, CaretRight as ChevronRight, MagnifyingGlass as Search, SlidersHorizontal } from '@phosphor-icons/react'
 import { api } from '../api'
 import MovieGrid from '../components/MovieGrid'
 import { ErrorMessage, Hero, SectionTitle } from '../components/UI'

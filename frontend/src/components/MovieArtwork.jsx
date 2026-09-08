@@ -1,5 +1,5 @@
 import { ViewTransition } from 'react'
-import { Clapperboard, Play } from 'lucide-react'
+import { FilmSlate as Clapperboard, Play } from '@phosphor-icons/react'
 import { faNumber, movieId, titleWithoutYear, yearFromTitle } from '../utils'
 
 function Artwork({ movie, index, className }) {
@@ -11,7 +11,7 @@ function Artwork({ movie, index, className }) {
       <span className="artwork-grain" />
       <span className="artwork-frame" />
       <span className="artwork-year">{faNumber(yearFromTitle(movie.title))}</span>
-      <span className="artwork-mark"><Clapperboard /><Play fill="currentColor" /></span>
+      <span className="artwork-mark"><Clapperboard /><Play weight="fill" /></span>
       <strong>{title.slice(0, 1)}</strong>
       {index != null ? <span className="artwork-index">{faNumber(String(index + 1).padStart(2, '0'))}</span> : null}
     </div>

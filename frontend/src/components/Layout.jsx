@@ -1,4 +1,4 @@
-import { BrainCircuit, Clapperboard, Compass, Database, Heart, Home, LogIn, Sparkles, Star, UserRound } from 'lucide-react'
+import { Brain as BrainCircuit, Compass, Database, FilmSlate as Clapperboard, Heart, House as Home, SignIn as LogIn, Sparkle as Sparkles, Star, UserCircle as UserRound } from '@phosphor-icons/react'
 import { COPY, NAV_ITEMS } from '../constants/copy'
 
 const ICONS = { home: Home, concierge: BrainCircuit, discover: Compass, recommendations: Heart, ratings: Star }

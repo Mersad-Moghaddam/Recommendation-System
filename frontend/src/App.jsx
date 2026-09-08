@@ -1,5 +1,5 @@
 import { addTransitionType, startTransition, useCallback, useEffect, useState } from 'react'
-import { AlertCircle, CheckCircle2, Star } from 'lucide-react'
+import { CheckCircle as CheckCircle2, Star, WarningCircle as AlertCircle } from '@phosphor-icons/react'
 import { api } from './api'
 import Layout from './components/Layout'
 import PageTransition from './components/PageTransition'
@@ -139,8 +139,8 @@ export default function App() {
             <p>{COPY.ratingDialog.prompt(ratingMovie.title)}</p>
             <div className="rating-picker">
               {[1, 2, 3, 4, 5].map((value) => (
-                <button type="button" key={value} className={rating === value ? 'selected' : ''} onClick={() => setRating(value)} aria-label={COPY.ratingDialog.aria(value)}>
-                  <Star fill={value <= rating ? 'currentColor' : 'none'} aria-hidden="true" /><span>{faNumber(value)}</span>
+                <button type="button" key={value} aria-pressed={rating === value} className={rating === value ? 'selected' : ''} onClick={() => setRating(value)} aria-label={COPY.ratingDialog.aria(value)}>
+                  <Star weight={value <= rating ? 'fill' : 'duotone'} aria-hidden="true" /><span>{faNumber(value)}</span>
                 </button>
               ))}
             </div>

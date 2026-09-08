@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { AlertCircle, Film, LoaderCircle, X } from 'lucide-react'
+import { FilmReel as Film, SpinnerGap as LoaderCircle, WarningCircle as AlertCircle, X } from '@phosphor-icons/react'
 import { COPY } from '../constants/copy'
 
 export function Hero({ eyebrow, title, description, children, visual, className = '' }) {
