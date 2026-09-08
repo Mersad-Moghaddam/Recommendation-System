@@ -1,9 +1,13 @@
 """Explainable content, collaborative, popularity and hybrid recommenders."""
+
 from __future__ import annotations
+
 import numpy as np
 import pandas as pd
+from scipy.sparse import csr_matrix
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+
 from backend.constants import (
     ERROR_MESSAGES,
     GENRE_LABELS,
@@ -36,7 +40,9 @@ class RecommendationEngine:
         self.movie_years = self.movies.title.str.extract(r"\((\d{4})\)\s*$")[0].astype(float).to_numpy()
         genre_text = self.movies.genres.fillna("").str.replace("|", " ", regex=False)
         self.genre_vectorizer = TfidfVectorizer(token_pattern=r"[^ ]+")
-        self.genre_matrix = self.genre_vectorizer.fit_transform(genre_text)
+        # TfidfVectorizer returns a generic sparse-matrix type in its stubs.
+        # Store a CSR matrix because recommendation lookups index its rows.
+        self.genre_matrix: csr_matrix = csr_matrix(self.genre_vectorizer.fit_transform(genre_text))
         self.user_item = build_user_item_matrix(self.ratings)
         item_matrix = self.user_item.fillna(0).T
         self.item_ids = item_matrix.index.astype(int).tolist()
@@ -58,8 +64,9 @@ class RecommendationEngine:
         stats = self.ratings.groupby("movieId").rating.agg(["mean", "count"])
         global_mean = float(self.ratings.rating.mean())
         confidence = max(5.0, float(stats["count"].quantile(.60)))
-        scores = ((stats["count"] * stats["mean"] + confidence * global_mean)
-                  / (stats["count"] + confidence)).to_dict()
+        raw_scores = ((stats["count"] * stats["mean"] + confidence * global_mean)
+                      / (stats["count"] + confidence)).to_dict()
+        scores = {int(movie_id): float(score) for movie_id, score in raw_scores.items()}
         return self._normalize(scores)
 
     @staticmethod
