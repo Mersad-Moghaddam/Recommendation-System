@@ -61,10 +61,7 @@ export default function App() {
 
   useEffect(() => {
     document.title = COPY.app.documentTitle
-    const syncRoute = () => startTransition(() => {
-      addTransitionType('nav-back')
-      setRoute(readRoute())
-    })
+    const syncRoute = () => setRoute(readRoute())
     window.addEventListener('popstate', syncRoute)
     return () => window.removeEventListener('popstate', syncRoute)
   }, [])
@@ -80,10 +77,14 @@ export default function App() {
     if (isModifiedClick(event)) return
     event?.preventDefault()
     window.history.pushState(null, '', routeUrl(page, params))
-    startTransition(() => {
-      addTransitionType(transitionType)
-      setRoute(readRoute())
-    })
+    if (transitionType === 'nav-forward' || transitionType === 'nav-back') {
+      startTransition(() => {
+        addTransitionType(transitionType)
+        setRoute(readRoute())
+      })
+      return
+    }
+    setRoute(readRoute())
   }, [])
 
   const replaceParams = useCallback((params) => {

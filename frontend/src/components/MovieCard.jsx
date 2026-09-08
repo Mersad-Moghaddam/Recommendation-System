@@ -6,7 +6,7 @@ import { CardArtwork } from './MovieArtwork'
 function MovieCardFrame({ movie, index, onDetails, onRate, className }) {
   const title = titleWithoutYear(movie.title)
   return (
-    <article className={`movie-card ${className}`} style={{ '--delay': `${Math.min(index, 8) * 40}ms` }}>
+    <article className={`movie-card ${className}`} style={{ '--delay': `${Math.min(index, 5) * 18}ms` }}>
       <button className="movie-card-main" type="button" onClick={() => onDetails(movie)} aria-label={COPY.card.detailsAria(title)}>
         <CardArtwork movie={movie} index={index} />
         <span className="movie-copy">

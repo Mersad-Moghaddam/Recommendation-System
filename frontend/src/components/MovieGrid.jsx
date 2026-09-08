@@ -9,7 +9,7 @@ function Grid({ movies, loading, user, onRate, onDetails, emptyTitle, CardCompon
   return (
     <div className="movie-grid">
       {movies.map((movie, index) => (
-        <ViewTransition key={movieId(movie)}>
+        <ViewTransition key={movieId(movie)} update="auto" default="none">
           <CardComponent
             movie={movie}
             index={index}
