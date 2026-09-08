@@ -75,7 +75,7 @@ export default function Concierge({ user, onRate, onDetails }) {
         <QuizSection number="05" title={COPY.concierge.discoveryTitle} hint={COPY.concierge.discoveryHint}>
           <div className="range-wrap">
             <span>{COPY.concierge.popular}</span>
-            <input aria-label={COPY.concierge.discoveryTitle} type="range" min="0" max="100" value={form.discovery} onChange={(event) => setForm({ ...form, discovery: Number(event.target.value) })} />
+            <input aria-label={COPY.concierge.discoveryTitle} name="discovery" type="range" min="0" max="100" value={form.discovery} onChange={(event) => setForm({ ...form, discovery: Number(event.target.value) })} />
             <span>{COPY.concierge.discovery}</span>
           </div>
         </QuizSection>

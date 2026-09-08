@@ -33,8 +33,8 @@ export default function Auth({ onAuthenticated }) {
             <button type="button" className={mode === 'login' ? 'selected' : ''} onClick={() => setMode('login')}>{COPY.auth.loginTab}</button>
             <button type="button" className={mode === 'register' ? 'selected' : ''} onClick={() => setMode('register')}>{COPY.auth.registerTab}</button>
           </div>
-          <label><span><UserRound size={17} aria-hidden="true" />{COPY.auth.username}</span><input required minLength="3" maxLength="50" autoComplete="username" value={form.username} onChange={(event) => setForm({ ...form, username: event.target.value })} placeholder={COPY.auth.usernamePlaceholder} /></label>
-          <label><span><LockKeyhole size={17} aria-hidden="true" />{COPY.auth.password}</span><input required minLength="6" maxLength="100" type="password" autoComplete={mode === 'login' ? 'current-password' : 'new-password'} value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} placeholder={COPY.auth.passwordPlaceholder} /></label>
+          <label><span><UserRound size={17} aria-hidden="true" />{COPY.auth.username}</span><input required name="username" minLength="3" maxLength="50" autoComplete="username" spellCheck={false} value={form.username} onChange={(event) => setForm({ ...form, username: event.target.value })} placeholder={COPY.auth.usernamePlaceholder} /></label>
+          <label><span><LockKeyhole size={17} aria-hidden="true" />{COPY.auth.password}</span><input required name="password" minLength="6" maxLength="100" type="password" autoComplete={mode === 'login' ? 'current-password' : 'new-password'} value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} placeholder={COPY.auth.passwordPlaceholder} /></label>
           {error ? <ErrorMessage>{error}</ErrorMessage> : null}
           <button type="submit" className="button primary large" disabled={loading}>
             {loading ? <SpinnerLabel>{COPY.auth.pending}</SpinnerLabel> : <>{mode === 'login' ? COPY.auth.loginAction : COPY.auth.registerAction}<ArrowLeft size={18} aria-hidden="true" /></>}
