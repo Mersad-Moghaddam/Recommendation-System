@@ -6,6 +6,7 @@ __pycache__/
 .env
 data/raw/*.csv
 data/raw/README.txt
+data/raw/*.part
 data/processed/*
 !data/processed/.gitkeep
 report-source.md

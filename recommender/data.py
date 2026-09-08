@@ -16,17 +16,25 @@ def load_movielens(movies_path: Path | str, ratings_path: Path | str) -> tuple[p
     ratings = ratings[ratings.rating.between(0.5, 5.0)]
     return movies, ratings
 
+def _append_movie_catalog(movies: pd.DataFrame, path: Path | str | None,
+                          error_message: str) -> pd.DataFrame:
+    if not path or not Path(path).exists():
+        return movies
+    supplemental = pd.read_csv(path)
+    required = {"movieId", "title", "genres"}
+    if not required <= set(supplemental.columns):
+        raise ValueError(error_message)
+    combined = pd.concat([movies, supplemental[["movieId", "title", "genres"]]], ignore_index=True)
+    return combined.drop_duplicates("movieId", keep="last")
+
+
 def load_catalog(movies_path: Path | str, ratings_path: Path | str,
-                 persian_path: Path | str | None = None) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Load MovieLens and optionally append the documented Iranian catalog."""
+                 persian_path: Path | str | None = None,
+                 expanded_path: Path | str | None = None) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Load base ratings plus optional expanded and Iranian movie catalogs."""
     movies, ratings = load_movielens(movies_path, ratings_path)
-    if persian_path and Path(persian_path).exists():
-        supplemental = pd.read_csv(persian_path)
-        required = {"movieId", "title", "genres"}
-        if not required <= set(supplemental.columns):
-            raise ValueError("ستون‌های کاتالوگ سینمای ایران معتبر نیستند")
-        movies = pd.concat([movies, supplemental[list(required)]], ignore_index=True)
-        movies = movies.drop_duplicates("movieId", keep="last")
+    movies = _append_movie_catalog(movies, expanded_path, "ستون‌های کاتالوگ توسعه‌یافته معتبر نیستند")
+    movies = _append_movie_catalog(movies, persian_path, "ستون‌های کاتالوگ سینمای ایران معتبر نیستند")
     return movies, ratings
 
 def build_user_item_matrix(ratings: pd.DataFrame) -> pd.DataFrame:

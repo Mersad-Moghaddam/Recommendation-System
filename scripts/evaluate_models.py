@@ -8,7 +8,10 @@ from recommender import RecommendationEngine
 from recommender.data import load_catalog
 
 def main(k: int = 10, users: int = 50):
-    movies, ratings = load_catalog(settings.movies_csv, settings.ratings_csv, settings.persian_movies_csv)
+    movies, ratings = load_catalog(
+        settings.movies_csv, settings.ratings_csv,
+        settings.persian_movies_csv, settings.expanded_movies_csv,
+    )
     eligible = ratings.groupby("userId").size().loc[lambda x: x >= 10].index[:users]
     results = {name: [] for name in ("popular", "collaborative", "content", "hybrid")}
     for uid in eligible:

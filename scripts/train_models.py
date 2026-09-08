@@ -8,7 +8,10 @@ from recommender.data import load_catalog
 
 def main():
     started = time.perf_counter()
-    movies, ratings = load_catalog(settings.movies_csv, settings.ratings_csv, settings.persian_movies_csv)
+    movies, ratings = load_catalog(
+        settings.movies_csv, settings.ratings_csv,
+        settings.persian_movies_csv, settings.expanded_movies_csv,
+    )
     engine = RecommendationEngine(movies, ratings)
     elapsed = time.perf_counter() - started
     print(f"Prepared {len(engine.movies):,} movies and {len(engine.ratings):,} ratings in {elapsed:.2f}s")

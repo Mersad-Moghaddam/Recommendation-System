@@ -9,7 +9,10 @@ from database.models import Movie, Rating, User
 from recommender.data import load_catalog
 
 def main():
-    movies, ratings = load_catalog(settings.movies_csv, settings.ratings_csv, settings.persian_movies_csv)
+    movies, ratings = load_catalog(
+        settings.movies_csv, settings.ratings_csv,
+        settings.persian_movies_csv, settings.expanded_movies_csv,
+    )
     create_tables()
     with SessionLocal() as db:
         existing_movie_ids = set(db.scalars(select(Movie.id)))
