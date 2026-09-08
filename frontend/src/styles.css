@@ -6,6 +6,14 @@
   font-style: normal;
 }
 
+@font-face {
+  font-family: EstedadDigits;
+  src: url('/fonts/Estedad.woff2') format('woff2-variations');
+  font-display: swap;
+  font-weight: 100 900;
+  font-style: normal;
+}
+
 :root {
   color-scheme: dark;
   font-family: Vazirmatn, Tahoma, sans-serif;
@@ -28,6 +36,7 @@
   --radius-md: 19px;
   --radius-lg: 28px;
   --shadow: 0 24px 70px rgba(0, 0, 0, 0.34);
+  --font-numeric: EstedadDigits, Vazirmatn, Tahoma, sans-serif;
   --text-xs: 0.8125rem;
   --text-sm: 0.9375rem;
   --text-md: 1.0625rem;
@@ -587,6 +596,34 @@ body {
 .quiz-summary .reset-button { justify-content: center; }
 .quiz-summary .model-note { margin: 0; padding: 13px; }
 .results-section { scroll-margin-top: 30px; }
+
+.catalog-badge,
+.mobile-catalog,
+.stat strong,
+.feature-card > span,
+.artwork-year,
+.artwork-index,
+.page-label,
+.pagination > span,
+.quiz-section legend > span,
+.range-value,
+.match,
+.detail-match strong,
+.detail-facts strong,
+.stars strong,
+.rating-picker span {
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1;
+}
+.stat strong { color: #fff8ec; font-size: 1.85rem; font-weight: 820; line-height: 1.1; letter-spacing: -0.035em; }
+.feature-card > span { font-weight: 850; letter-spacing: -0.06em; }
+.artwork-year, .artwork-index { font-weight: 720; letter-spacing: 0.025em; }
+.quiz-section legend > span { font-size: 0.875rem; font-weight: 780; }
+.range-value { font-size: 1rem; font-weight: 760; }
+.pagination > span { display: grid; min-width: 42px; min-height: 42px; place-items: center; border: 1px solid rgba(234, 191, 106, 0.22); border-radius: 13px; color: var(--gold); background: rgba(234, 191, 106, 0.06); font-size: 0.95rem; font-weight: 760; }
+.stars strong { font-size: 1.25rem; font-weight: 820; line-height: 1; }
+.rating-picker span { font-size: 0.875rem; font-weight: 760; }
 
 @media (max-width: 1220px) {
   .movie-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
