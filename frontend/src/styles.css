@@ -1,14 +1,6 @@
 @font-face {
-  font-family: Vazirmatn;
+  font-family: 'Vazirmatn UI';
   src: url('/fonts/Vazirmatn.woff2') format('woff2-variations');
-  font-display: swap;
-  font-weight: 100 900;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: EstedadDigits;
-  src: url('/fonts/Estedad.woff2') format('woff2-variations');
   font-display: swap;
   font-weight: 100 900;
   font-style: normal;
@@ -16,7 +8,7 @@
 
 :root {
   color-scheme: dark;
-  font-family: Vazirmatn, Tahoma, sans-serif;
+  font-family: 'Vazirmatn UI', Vazirmatn, Tahoma, sans-serif;
   color: #f5f1e8;
   background: #09090c;
   font-synthesis: none;
@@ -36,7 +28,7 @@
   --radius-md: 19px;
   --radius-lg: 28px;
   --shadow: 0 24px 70px rgba(0, 0, 0, 0.34);
-  --font-numeric: EstedadDigits, Vazirmatn, Tahoma, sans-serif;
+  --font-numeric: 'Vazirmatn UI', Vazirmatn, Tahoma, sans-serif;
   --text-xs: 0.8125rem;
   --text-sm: 0.9375rem;
   --text-md: 1.0625rem;
@@ -174,7 +166,7 @@ p { text-wrap: pretty; }
 .artwork-detail { min-height: 540px; height: 100%; border-radius: var(--radius-md); }
 .artwork-grain { position: absolute; inset: 0; opacity: 0.15; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.3'/%3E%3C/svg%3E"); }
 .artwork-frame { position: absolute; inset: 10px; border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 9px; }
-.artwork-year, .artwork-index { position: absolute; inset-block-start: 17px; color: rgba(255, 255, 255, 0.72); font-family: Vazirmatn, Tahoma, sans-serif; font-size: var(--text-xs); font-weight: 600; font-variant-numeric: tabular-nums lining-nums; }
+.artwork-year, .artwork-index { position: absolute; inset-block-start: 17px; color: rgba(255, 255, 255, 0.72); font-family: 'Vazirmatn UI', Vazirmatn, Tahoma, sans-serif; font-size: var(--text-xs); font-weight: 600; font-variant-numeric: tabular-nums lining-nums; }
 .artwork-year { inset-inline-start: 18px; }
 .artwork-index { inset-inline-end: 18px; }
 .artwork-mark { position: absolute; inset-block-end: 17px; inset-inline-start: 18px; display: flex; gap: 7px; color: rgba(255, 255, 255, 0.58); }
