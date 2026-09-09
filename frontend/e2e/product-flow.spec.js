@@ -60,7 +60,7 @@ test('English summaries retain direction and private APIs are never cached', asy
   expect(privateEntries).toEqual([])
 })
 
-test('install prompt stays a compact non-blocking control', async ({ page }) => {
+test('install prompt replaces the catalog count without an icon', async ({ page }) => {
   await page.goto('/#discover')
   await expect(page.getByText('A spoiler-free English overview.')).toBeVisible()
   await page.evaluate(() => {
@@ -72,9 +72,9 @@ test('install prompt stays a compact non-blocking control', async ({ page }) => 
   const prompt = page.getByRole('button', { name: 'نصب سینمچ' })
   await expect(prompt).toBeVisible()
   const box = await prompt.boundingBox()
-  expect(box.height).toBeLessThanOrEqual(52)
-  expect(box.width).toBeLessThanOrEqual(180)
-  const iconBox = await prompt.locator('svg').boundingBox()
-  expect(iconBox.width).toBe(20)
-  expect(iconBox.height).toBe(20)
+  expect(box.height).toBeLessThanOrEqual(44)
+  expect(box.width).toBeLessThanOrEqual(120)
+  expect(box.y).toBeLessThan(70)
+  await expect(prompt.locator('svg')).toHaveCount(0)
+  await expect(page.getByText('۸۷ هزار فیلم')).toHaveCount(0)
 })

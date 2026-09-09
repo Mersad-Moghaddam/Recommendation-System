@@ -39,14 +39,12 @@ export default function Layout({ children, page, navigate, user, logout }) {
           <span className="brand-mark"><Clapperboard size={22} aria-hidden="true" /></span>
           <span><b>{COPY.layout.brandStart}</b>{COPY.layout.brandEnd}</span>
         </a>
-        <span className="mobile-catalog"><i aria-hidden="true" />{COPY.layout.catalogBadge}</span>
       </header>
       <aside className="sidebar" style={{ viewTransitionName: 'persistent-nav' }}>
         <a className="brand" href="/#home" onClick={(event) => navigate('home', event)} aria-label={COPY.layout.brandLabel}>
           <span className="brand-mark"><Clapperboard size={25} aria-hidden="true" /></span>
           <span><b>{COPY.layout.brandStart}</b>{COPY.layout.brandEnd}<small>{COPY.layout.tagline}</small></span>
         </a>
-        <span className="catalog-badge">{COPY.layout.catalogBadge}</span>
         <Navigation page={page} navigate={navigate} user={user} />
         <div className="sidebar-footer">
           {user ? (

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ArrowClockwise, DownloadSimple, WifiSlash, X } from '@phosphor-icons/react'
+import { ArrowClockwise, WifiSlash, X } from '@phosphor-icons/react'
 import { useRegisterSW } from 'virtual:pwa-register/react'
 import { COPY } from '../constants/copy'
 
@@ -49,7 +49,7 @@ export default function PwaStatus() {
     )
   }
   if (installEvent) {
-    return <button type="button" className="install-prompt" onClick={install}><DownloadSimple size={20} aria-hidden="true" />{COPY.pwa.install}</button>
+    return <button type="button" className="install-prompt" onClick={install}>{COPY.pwa.install}</button>
   }
   if (isIos && !dismissedIos) {
     return (
