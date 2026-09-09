@@ -31,13 +31,14 @@ from backend.schemas import (
 )
 from backend.security import create_token, read_token
 from backend.services import MovieService, RatingService, RecommendationService, UserService
-from config import settings
+from config import settings, validate_settings
 from database.database import SessionLocal, create_tables, get_db
 from database.models import Movie, Rating, User
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    validate_settings()
     create_tables()
     with SessionLocal() as db:
         RecommendationService.engine(db)

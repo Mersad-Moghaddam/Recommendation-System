@@ -39,6 +39,15 @@ export default function Layout({ children, page, navigate, user, logout }) {
           <span className="brand-mark"><Clapperboard size={22} aria-hidden="true" /></span>
           <span><b>{COPY.layout.brandStart}</b>{COPY.layout.brandEnd}</span>
         </a>
+        {user ? (
+          <button className="mobile-account" type="button" onClick={logout} aria-label={`${COPY.layout.logout}، ${user.username}`}>
+            <UserRound size={21} aria-hidden="true" /><span>{COPY.layout.logout}</span>
+          </button>
+        ) : (
+          <a className="mobile-account" href="/#auth" onClick={(event) => navigate('auth', event)}>
+            <LogIn size={21} aria-hidden="true" /><span>{COPY.layout.login}</span>
+          </a>
+        )}
       </header>
       <aside className="sidebar" style={{ viewTransitionName: 'persistent-nav' }}>
         <a className="brand" href="/#home" onClick={(event) => navigate('home', event)} aria-label={COPY.layout.brandLabel}>
@@ -62,7 +71,7 @@ export default function Layout({ children, page, navigate, user, logout }) {
           )}
         </div>
       </aside>
-      <main id="main-content" className="main-content">
+      <main id="main-content" className="main-content" tabIndex="-1">
         {children}
       </main>
       <div className="mobile-nav" style={{ viewTransitionName: 'persistent-mobile-nav' }}>

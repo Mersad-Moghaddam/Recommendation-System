@@ -46,6 +46,18 @@ def test_quiz_can_limit_results_to_iranian_cinema():
     assert results[0]["movie_id"] == 1000001
 
 
+def test_quiz_fallback_keeps_origin_constraint_when_content_does_not_match():
+    results = sample_engine().preference_quiz("Escape", ["Sci-Fi"], origin="Iranian")
+
+    assert [item["movie_id"] for item in results] == [1000001]
+
+
+def test_quiz_returns_empty_when_explicit_era_has_no_candidates():
+    results = sample_engine().preference_quiz("Thoughtful", ["Drama"], era="Classics")
+
+    assert results == []
+
+
 @pytest.mark.parametrize(("kwargs", "message_key"), [
     ({"moods": ["Unknown"], "genres": []}, "invalid_mood"),
     ({"moods": ["feel_good"], "genres": ["Unknown"]}, "invalid_genre"),

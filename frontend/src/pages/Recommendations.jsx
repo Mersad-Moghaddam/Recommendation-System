@@ -24,11 +24,13 @@ export default function Recommendations({ user, onRate, onDetails }) {
   const changeMethod = (value) => {
     setLoading(true)
     setError('')
+    setMovies([])
     setMode(value)
   }
   const reload = () => {
     setLoading(true)
     setError('')
+    setMovies([])
     setReloadKey((value) => value + 1)
   }
 

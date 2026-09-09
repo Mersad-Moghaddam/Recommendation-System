@@ -17,6 +17,16 @@ const Onboarding = lazy(() => import('./pages/Onboarding'))
 const Ratings = lazy(() => import('./pages/Ratings'))
 const Recommendations = lazy(() => import('./pages/Recommendations'))
 const PROTECTED_PAGES = new Set(['concierge', 'recommendations', 'ratings', 'onboarding'])
+const PAGE_TITLES = {
+  auth: 'ورود و ثبت‌نام',
+  concierge: 'پیشنهاد هوشمند',
+  detail: 'جزئیات فیلم',
+  discover: 'کشف فیلم',
+  home: 'خانه',
+  onboarding: 'شروع شخصی‌سازی',
+  ratings: 'امتیازهای من',
+  recommendations: 'پیشنهادهای من',
+}
 
 function readRoute() {
   const raw = window.location.hash.slice(1) || 'home'
@@ -36,11 +46,11 @@ function isModifiedClick(event) {
   return event && (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
 }
 
-function AppPage({ route, user, detailSeed, navigate, changeRoute, replaceParams, openDetails, openRate, showError, authenticate }) {
+function AppPage({ route, user, detailSeed, navigate, changeRoute, changeRawRoute, replaceParams, openDetails, openRate, showError, authenticate }) {
   const common = { user, onRate: openRate, onDetails: openDetails }
   if (route.page === 'detail' && route.params.get('id')) {
     const from = route.params.get('from') || 'home'
-    return <MovieDetails {...common} id={route.params.get('id')} seed={detailSeed} goBack={() => navigate(from)} />
+    return <MovieDetails {...common} id={route.params.get('id')} seed={detailSeed} goBack={() => changeRawRoute(from, true)} />
   }
   if (route.page === 'auth') {
     return <Auth onAuthenticated={authenticate} />
@@ -52,7 +62,7 @@ function AppPage({ route, user, detailSeed, navigate, changeRoute, replaceParams
     return <Onboarding navigate={(page) => changeRoute(page)} next={route.params.get('next') || 'concierge'} />
   }
   if (route.page === 'concierge') return <Concierge {...common} />
-  if (route.page === 'discover') return <Discover {...common} params={route.params} replaceParams={replaceParams} />
+  if (route.page === 'discover') return <Discover key={route.params.toString()} {...common} params={route.params} replaceParams={replaceParams} />
   if (route.page === 'recommendations') return <Recommendations {...common} />
   if (route.page === 'ratings') return <Ratings navigate={navigate} onDetails={openDetails} />
   return <Home {...common} navigate={navigate} showError={showError} />
@@ -80,7 +90,11 @@ export default function App() {
       .finally(() => setSessionLoading(false))
     const syncRoute = () => setRoute(readRoute())
     window.addEventListener('popstate', syncRoute)
-    return () => window.removeEventListener('popstate', syncRoute)
+    window.addEventListener('hashchange', syncRoute)
+    return () => {
+      window.removeEventListener('popstate', syncRoute)
+      window.removeEventListener('hashchange', syncRoute)
+    }
   }, [])
 
   useEffect(() => {
@@ -93,7 +107,17 @@ export default function App() {
     }
     return undefined
   }, [route.page, sessionLoading, user])
-  useEffect(() => { window.scrollTo({ top: 0 }) }, [route.page, route.params])
+  const detailId = route.params.get('id')
+  useEffect(() => {
+    window.scrollTo({ top: 0 })
+    const frame = window.requestAnimationFrame(() => {
+      const main = document.getElementById('main-content')
+      main?.focus({ preventScroll: true })
+      const title = PAGE_TITLES[route.page]
+      document.title = title ? `${title} | سینمچ` : COPY.app.documentTitle
+    })
+    return () => window.cancelAnimationFrame(frame)
+  }, [detailId, route.page])
   useEffect(() => {
     if (!toast) return undefined
     const timer = window.setTimeout(() => setToast(null), 3500)
@@ -112,6 +136,11 @@ export default function App() {
       update()
     }
   }, [])
+
+  const changeRawRoute = useCallback((raw, replace = false) => {
+    const [page, query = ''] = raw.split('?')
+    changeRoute(page || 'home', Object.fromEntries(new URLSearchParams(query)), replace)
+  }, [changeRoute])
 
   const navigate = useCallback((page, event, params = {}) => {
     if (isModifiedClick(event)) return
@@ -137,15 +166,20 @@ export default function App() {
   const logout = async () => {
     try {
       await api.logout()
-    } finally {
       setSession({ user: null, onboarding_required: false })
       changeRoute('home')
       setToast({ message: COPY.app.loggedOut, type: 'success' })
+    } catch (error) {
+      showError(error)
     }
   }
-  const openDetails = useCallback((movie) => {
+  const openDetails = useCallback((movie, event) => {
+    if (isModifiedClick(event)) return
+    event?.preventDefault()
     setDetailSeed(movie)
-    const from = route.page === 'detail' ? route.params.get('from') || 'home' : route.page
+    const from = route.page === 'detail'
+      ? route.params.get('from') || 'home'
+      : `${route.page}${route.params.size ? `?${route.params}` : ''}`
     changeRoute('detail', { id: movieId(movie), from })
   }, [changeRoute, route])
   const openRate = (movie) => {
@@ -157,10 +191,11 @@ export default function App() {
     setRating(4)
   }
   const saveRating = async () => {
+    const submittedMovieId = movieId(ratingMovie)
     setRatingBusy(true)
     try {
-      await api.rate(movieId(ratingMovie), rating)
-      setRatingMovie(null)
+      await api.rate(submittedMovieId, rating)
+      setRatingMovie((current) => current && movieId(current) === submittedMovieId ? null : current)
       setToast({ message: COPY.app.ratingSaved, type: 'success' })
     } catch (error) {
       showError(error)
@@ -170,23 +205,23 @@ export default function App() {
   }
 
   if (sessionLoading) return <PageLoading />
-  const activePage = route.page === 'detail' ? route.params.get('from') || 'home' : route.page
+  const activePage = route.page === 'detail' ? (route.params.get('from') || 'home').split('?')[0] : route.page
   return (
     <Layout page={activePage} navigate={navigate} user={user} logout={logout}>
       <PwaStatus />
       <Suspense fallback={<PageLoading />}>
         <PageTransition key={`${route.page}-${route.params.get('id') || ''}`}>
-          <AppPage route={route} user={user} detailSeed={detailSeed} navigate={navigate} changeRoute={changeRoute} replaceParams={replaceParams} openDetails={openDetails} openRate={openRate} showError={showError} authenticate={authenticate} />
+          <AppPage route={route} user={user} detailSeed={detailSeed} navigate={navigate} changeRoute={changeRoute} changeRawRoute={changeRawRoute} replaceParams={replaceParams} openDetails={openDetails} openRate={openRate} showError={showError} authenticate={authenticate} />
           <SiteFooter navigate={navigate} />
         </PageTransition>
       </Suspense>
       {ratingMovie ? (
-        <Dialog title={COPY.ratingDialog.title} onClose={() => setRatingMovie(null)}>
+        <Dialog title={COPY.ratingDialog.title} onClose={() => { if (!ratingBusy) setRatingMovie(null) }}>
           <div className="rating-dialog">
             <p>{COPY.ratingDialog.prompt(ratingMovie.display_title || ratingMovie.title)}</p>
             <div className="rating-picker">
               {[1, 2, 3, 4, 5].map((value) => (
-                <button type="button" key={value} aria-pressed={rating === value} className={rating === value ? 'selected' : ''} onClick={() => setRating(value)} aria-label={COPY.ratingDialog.aria(value)}>
+                <button type="button" key={value} disabled={ratingBusy} aria-pressed={rating === value} className={rating === value ? 'selected' : ''} onClick={() => setRating(value)} aria-label={COPY.ratingDialog.aria(value)}>
                   <Star weight={value <= rating ? 'fill' : 'duotone'} aria-hidden="true" /><span>{faNumber(value)}</span>
                 </button>
               ))}

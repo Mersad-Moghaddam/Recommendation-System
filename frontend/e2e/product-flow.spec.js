@@ -41,6 +41,9 @@ test('registration returns to onboarding and then concierge', async ({ page }) =
   }
   await page.getByRole('button', { name: /ذخیره و ادامه/ }).click()
   await expect(page).toHaveURL(/#concierge/)
+  if ((page.viewportSize()?.width || 0) <= 900) {
+    await expect(page.getByRole('button', { name: /خروج از حساب/ })).toBeVisible()
+  }
 })
 
 test('English summaries retain direction and private APIs are never cached', async ({ page, context }) => {

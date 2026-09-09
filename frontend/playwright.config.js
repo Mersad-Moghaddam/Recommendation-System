@@ -6,6 +6,7 @@ export default defineConfig({
     baseURL: 'http://127.0.0.1:4173',
     locale: 'fa-IR',
     colorScheme: 'dark',
+    channel: process.env.PLAYWRIGHT_CHANNEL,
     trace: 'retain-on-failure',
   },
   webServer: {

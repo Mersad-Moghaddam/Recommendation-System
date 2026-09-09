@@ -14,3 +14,5 @@ Object.defineProperty(window, 'matchMedia', {
   }),
 })
 Element.prototype.scrollIntoView = () => {}
+window.requestAnimationFrame = (callback) => window.setTimeout(callback, 0)
+window.cancelAnimationFrame = (id) => window.clearTimeout(id)

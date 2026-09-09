@@ -28,7 +28,8 @@ function useMoviePageData(id) {
 
 export default function MovieDetails({ id, seed, user, onRate, onDetails, goBack }) {
   const { details, similar, error } = useMoviePageData(id)
-  const movie = details || seed
+  const matchingSeed = seed && movieId(seed) === Number(id) ? seed : null
+  const movie = details || matchingSeed
   if (!movie && !error) return <PageLoading />
   if (!movie) return <ErrorMessage>{error}</ErrorMessage>
 

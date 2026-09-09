@@ -29,3 +29,13 @@ def test_movie_details_identify_local_persian_catalog():
     assert details["is_persian"] is True
     assert details["source"] == MOVIE_DETAIL_COPY["source_persian"]
     assert details["community_note"] == MOVIE_DETAIL_COPY["no_ratings"]
+
+
+def test_movie_details_identify_iranian_metadata_outside_local_id_range():
+    movie = SimpleNamespace(id=42, title="Sample (2022)", genres="Drama")
+    metadata = SimpleNamespace(countries=["IR"], overview_fa=None, overview_en=None, source="tmdb")
+
+    details = build_movie_details(movie, None, 0, metadata)
+
+    assert details["is_persian"] is True
+    assert details["source"] == MOVIE_DETAIL_COPY["source_persian"]

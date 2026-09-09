@@ -286,28 +286,31 @@ class RecommendationEngine:
         query_vector = self.content_vectorizer.transform([" ".join(chosen)])
         fit = np.asarray((self.content_matrix @ query_vector.T).toarray()).reshape(-1)
 
-        eligible = fit > 0
+        constrained = np.ones(len(fit), dtype=bool)
         known_year = ~np.isnan(self.movie_years)
         if era == "Classics":
-            eligible &= ~known_year | (self.movie_years < 1980)
+            constrained &= known_year & (self.movie_years < 1980)
         elif era == "80s & 90s":
-            eligible &= ~known_year | ((self.movie_years >= 1980) & (self.movie_years < 2000))
+            constrained &= known_year & (self.movie_years >= 1980) & (self.movie_years < 2000)
         elif era == "2000s":
-            eligible &= ~known_year | ((self.movie_years >= 2000) & (self.movie_years < 2015))
+            constrained &= known_year & (self.movie_years >= 2000) & (self.movie_years < 2015)
         elif era == "Modern":
-            eligible &= ~known_year | (self.movie_years >= 2015)
+            constrained &= known_year & (self.movie_years >= 2015)
         if origin == "Iranian":
-            eligible &= self.is_iranian
+            constrained &= self.is_iranian
         elif origin == "International":
-            eligible &= ~self.is_iranian
+            constrained &= ~self.is_iranian
 
         history_frame = self._history_frame(history if history is not None else [])
         rated = set(history_frame.movieId.astype(int)) if not history_frame.empty else set()
         if rated:
-            eligible &= ~np.isin(self.movie_id_array, list(rated))
+            constrained &= ~np.isin(self.movie_id_array, list(rated))
+        eligible = constrained & (fit > 0)
         positions = np.flatnonzero(eligible)
         if not len(positions):
-            return self.popular(n, rated)
+            positions = np.flatnonzero(constrained)
+        if not len(positions):
+            return []
 
         quality_weight = .05 + .30 * (1 - discovery / 100)
         history_weight = .30 if not history_frame.empty else 0.0

@@ -6,13 +6,18 @@ import { ErrorMessage, Hero, SectionTitle } from '../components/UI'
 import { COPY, GENRE_OPTIONS } from '../constants/copy'
 import { faNumber } from '../utils'
 
-export default function Discover({ user, onRate, onDetails, params, replaceParams }) {
-  const initialFilters = {
+function filtersFromParams(params) {
+  const parsedPage = Number(params.get('page') || 0)
+  return {
     query: params.get('q') || '',
     iranian: params.get('iranian') === '1',
     genre: params.get('genre') || '',
-    page: Number(params.get('page') || 0),
+    page: Number.isInteger(parsedPage) && parsedPage >= 0 ? parsedPage : 0,
   }
+}
+
+export default function Discover({ user, onRate, onDetails, params, replaceParams }) {
+  const initialFilters = filtersFromParams(params)
   const [draft, setDraft] = useState(initialFilters.query)
   const [filters, setFilters] = useState(initialFilters)
   const [movies, setMovies] = useState([])
@@ -31,6 +36,7 @@ export default function Discover({ user, onRate, onDetails, params, replaceParam
   const updateFilters = (next) => {
     setLoading(true)
     setError('')
+    setMovies([])
     const updated = { ...filters, ...next }
     setFilters(updated)
     replaceParams({

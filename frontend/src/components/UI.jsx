@@ -51,7 +51,7 @@ export function Loading({ count = 6, compact = false }) {
 }
 
 export function PageLoading() {
-  return <div className="page-loading"><span className="projector-loader"><i /></span><p>{COPY.app.loadingPage}</p></div>
+  return <div className="page-loading" role="status" aria-live="polite"><span className="projector-loader" aria-hidden="true"><i /></span><p>{COPY.app.loadingPage}</p></div>
 }
 
 export function ErrorMessage({ children }) {

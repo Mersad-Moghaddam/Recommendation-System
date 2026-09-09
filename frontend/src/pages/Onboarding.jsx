@@ -22,8 +22,13 @@ export default function Onboarding({ navigate, next }) {
   }, [])
 
   const choose = (id, value) => {
-    if (ratings[id] == null && selectedCount >= 3) return
-    setRatings((current) => ({ ...current, [id]: value }))
+    setRatings((current) => {
+      if (current[id] == null && Object.keys(current).length >= 3) return current
+      if (current[id] !== value) return { ...current, [id]: value }
+      const updated = { ...current }
+      delete updated[id]
+      return updated
+    })
   }
   const save = async () => {
     setSaving(true)
@@ -59,7 +64,7 @@ export default function Onboarding({ navigate, next }) {
         description={COPY.onboarding.description}
       />
       <div className="onboarding-progress" aria-live="polite">
-        <span><i style={{ width: `${selectedCount / 3 * 100}%` }} /></span>
+        <span><i style={{ transform: `scaleX(${selectedCount / 3})` }} /></span>
         <b>{COPY.onboarding.progress(faNumber(selectedCount))}</b>
       </div>
       {error ? <ErrorMessage>{error}</ErrorMessage> : null}
@@ -78,7 +83,7 @@ export default function Onboarding({ navigate, next }) {
                   </p>
                   <div className="onboarding-stars" aria-label={COPY.onboarding.rateAria(movie.display_title)}>
                     {[1, 2, 3, 4, 5].map((value) => (
-                      <button type="button" key={value} onClick={() => choose(id, value)} aria-label={COPY.ratingDialog.aria(value)} aria-pressed={current === value}>
+                      <button type="button" key={value} disabled={current == null && selectedCount >= 3} onClick={() => choose(id, value)} aria-label={COPY.ratingDialog.aria(value)} aria-pressed={current === value}>
                         <Star weight={value <= current ? 'fill' : 'regular'} aria-hidden="true" />
                       </button>
                     ))}

@@ -64,6 +64,7 @@ p { text-wrap: pretty; }
 
 .app-shell { min-height: 100vh; }
 .mobile-header { display: none; }
+.mobile-account { display: none; }
 .sidebar { position: fixed; z-index: 20; inset-block: 0; inset-inline-start: 0; width: 272px; display: flex; flex-direction: column; padding: 34px 22px 26px; border-inline-end: 1px solid var(--line); background: rgba(11, 11, 15, 0.94); backdrop-filter: blur(18px); }
 .brand { display: flex; align-items: center; gap: 12px; padding: 2px; }
 .brand-mark { display: grid; width: 46px; aspect-ratio: 1; place-items: center; border-radius: 14px; color: #fff; background: linear-gradient(145deg, var(--accent-light), #a7162b); box-shadow: 0 10px 28px rgba(227, 61, 73, 0.25); }
@@ -383,6 +384,7 @@ p { text-wrap: pretty; }
   .mobile-brand { display: flex; align-items: center; gap: 9px; font-size: var(--text-lg); font-weight: 650; }
   .mobile-brand .brand-mark { width: 38px; border-radius: 11px; }
   .mobile-brand b { color: var(--accent-light); }
+  .mobile-account { display: inline-flex; min-height: 44px; align-items: center; gap: 7px; padding-inline: 12px; border: 1px solid var(--line); border-radius: 11px; color: var(--muted); background: var(--surface); font-size: var(--text-xs); cursor: pointer; }
   .main-content { margin-inline-start: 0; padding: 18px 18px calc(105px + env(safe-area-inset-bottom)); }
   .mobile-nav { position: fixed; z-index: 30; inset-inline: 12px; inset-block-end: calc(10px + env(safe-area-inset-bottom)); display: block; padding: 7px; border: 1px solid var(--line-strong); border-radius: 18px; background: rgba(18, 18, 23, 0.93); box-shadow: 0 16px 40px rgba(0, 0, 0, 0.48); backdrop-filter: blur(20px); }
   .mobile-nav .nav { grid-auto-flow: column; grid-auto-columns: 1fr; gap: 2px; }
@@ -617,7 +619,7 @@ body {
   .quiz-summary dl > div:last-child { border-inline-end: 0; }
 }
 @media (max-width: 900px) {
-  .main-content { margin-inline-start: 0; padding-block-start: 18px; }
+  .main-content { margin-inline-start: 0; padding-block: 18px calc(105px + env(safe-area-inset-bottom)); }
   .hero { min-height: 430px; align-items: end; }
   .hero::before, .home-hero::before { background: linear-gradient(180deg, rgba(8, 8, 11, 0.14), rgba(8, 8, 11, 0.98) 70%); }
   .hero-content { width: 100%; max-width: none; justify-content: end; padding: 34px 28px; }
@@ -791,7 +793,7 @@ body {
   border-radius: 99px;
   background: #272b35;
 }
-.onboarding-progress i { display: block; height: 100%; background: var(--gold); transition: width 180ms ease; }
+.onboarding-progress i { display: block; width: 100%; height: 100%; background: var(--gold); transform-origin: right center; transition: transform 180ms ease; }
 .onboarding-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
 .onboarding-movie {
   display: grid;
@@ -866,8 +868,12 @@ body {
   .rate-quick { min-height: 44px; }
   .mood-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .onboarding-grid { grid-template-columns: 1fr; }
-  .onboarding-movie .artwork-card { min-height: 215px; }
-  .onboarding-actions { width: calc(100% - 10px); }
+  .onboarding-movie { grid-template-columns: 1fr; }
+  .onboarding-movie .artwork-card { height: 180px; min-height: 180px; }
+  .onboarding-movie > div { min-height: 205px; }
+  .onboarding-stars { gap: 4px; }
+  .onboarding-stars button { width: auto; min-width: 44px; flex: 1; }
+  .onboarding-actions { inset-block-end: calc(88px + env(safe-area-inset-bottom)); width: calc(100% - 10px); }
   .app-status { inset-block-start: calc(75px + env(safe-area-inset-top)); inset-inline: 16px; }
   .install-prompt {
     inset-block-start: calc(12px + env(safe-area-inset-top));

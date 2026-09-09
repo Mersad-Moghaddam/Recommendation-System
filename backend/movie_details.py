@@ -46,6 +46,11 @@ def metadata_overview(metadata) -> tuple[str | None, str | None, str]:
     return None, None, getattr(metadata, "source", "catalog")
 
 
+def is_persian_movie(movie, metadata=None) -> bool:
+    countries = getattr(metadata, "countries", None) or []
+    return movie.id >= PERSIAN_MOVIE_ID_START or "IR" in countries
+
+
 def build_movie_summary(movie, metadata=None) -> dict:
     clean_title, year = split_title(movie.title)
     overview, locale, source = metadata_overview(metadata)
@@ -87,7 +92,7 @@ def build_movie_details(movie, rating_average: float | None, rating_count: int, 
         community_note = MOVIE_DETAIL_COPY["few_ratings"]
     else:
         community_note = MOVIE_DETAIL_COPY["trusted_ratings"]
-    is_persian = movie.id >= PERSIAN_MOVIE_ID_START
+    is_persian = is_persian_movie(movie, metadata)
     return {
         **build_movie_summary(movie, metadata),
         "overview": overview,
