@@ -53,7 +53,11 @@ function DetailHero({ movie, details, onRate }) {
         <div className="detail-tags">{movie.genres?.map((genre) => <span key={genre}>{genreFa(genre)}</span>)}</div>
         {movie.score != null ? <div className="detail-match"><Sparkles aria-hidden="true" /><strong>{COPY.card.match(faNumber(Math.round(movie.score * 100)))}</strong></div> : null}
         {movie.reason ? <div className="recommendation-reason"><b>{COPY.details.reasonTitle}</b><p>{movie.reason}</p></div> : null}
-        {details ? <p className="detail-overview">{details.overview}</p> : <p className="detail-loading">{COPY.details.loading}</p>}
+        {details ? (
+          <p className="detail-overview" lang={details.overview_locale || undefined} dir={details.overview_locale === 'en' ? 'ltr' : 'rtl'}>
+            {details.overview}
+          </p>
+        ) : <p className="detail-loading">{COPY.details.loading}</p>}
         <div className="detail-actions"><button type="button" className="button primary" onClick={() => onRate(movie)}><Star size={18} aria-hidden="true" />{COPY.details.rateAction}</button></div>
       </div>
       <DetailFacts details={details} />

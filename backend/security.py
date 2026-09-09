@@ -19,7 +19,9 @@ def verify_password(password: str, stored: str) -> bool:
         return False
 
 def create_token(user_id: int) -> str:
-    payload = base64.urlsafe_b64encode(json.dumps({"sub": user_id, "exp": int(time.time()) + 86400}).encode()).decode().rstrip("=")
+    payload = base64.urlsafe_b64encode(
+        json.dumps({"sub": user_id, "exp": int(time.time()) + settings.session_seconds}).encode()
+    ).decode().rstrip("=")
     signature = hmac.new(settings.secret_key.encode(), payload.encode(), hashlib.sha256).hexdigest()
     return f"{payload}.{signature}"
 

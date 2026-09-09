@@ -1,20 +1,18 @@
-"""Validate the data and build model structures once as a preparation check."""
+"""Build and persist the versioned recommender artifact used by the API."""
 from pathlib import Path
 import sys, time
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from config import settings
-from recommender import RecommendationEngine
-from recommender.data import load_catalog
+from backend.services import RecommendationService
+from database.database import SessionLocal, create_tables
 
 def main():
     started = time.perf_counter()
-    movies, ratings = load_catalog(
-        settings.movies_csv, settings.ratings_csv,
-        settings.persian_movies_csv, settings.expanded_movies_csv,
-    )
-    engine = RecommendationEngine(movies, ratings)
+    create_tables()
+    with SessionLocal() as db:
+        engine = RecommendationService.engine(db, force_rebuild=True)
     elapsed = time.perf_counter() - started
-    print(f"Prepared {len(engine.movies):,} movies and {len(engine.ratings):,} ratings in {elapsed:.2f}s")
-    print("No model file is required: the API caches these structures in memory.")
+    print(f"Prepared {len(engine.movies):,} movies and {len(engine.ratings):,} dataset ratings in {elapsed:.2f}s")
+    print(f"Versioned artifact written to {settings.model_artifact}")
 
 if __name__ == "__main__": main()

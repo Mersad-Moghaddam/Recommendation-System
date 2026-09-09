@@ -42,9 +42,9 @@ export function Empty({ title = COPY.common.emptyTitle, text = COPY.common.empty
   return <div className="empty"><Film size={34} aria-hidden="true" /><h3>{title}</h3><p>{text}</p></div>
 }
 
-export function Loading({ count = 6 }) {
+export function Loading({ count = 6, compact = false }) {
   return (
-    <div className="movie-grid" aria-label={COPY.app.loadingPage} aria-busy="true">
+    <div className={`movie-grid loading-grid ${compact ? 'loading-compact' : ''}`} aria-label={COPY.app.loadingPage} aria-busy="true">
       {Array.from({ length: count }, (_, index) => <div className="skeleton" key={index}><i /><b /><span /><span /></div>)}
     </div>
   )

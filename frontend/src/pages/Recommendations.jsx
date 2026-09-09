@@ -3,10 +3,10 @@ import { ArrowClockwise as RefreshCw } from '@phosphor-icons/react'
 import { api } from '../api'
 import MovieGrid from '../components/MovieGrid'
 import { ErrorMessage, Hero, SectionTitle } from '../components/UI'
-import { COPY, METHOD_OPTIONS } from '../constants/copy'
+import { COPY, MODE_OPTIONS } from '../constants/copy'
 
-export default function Recommendations({ user, token, onRate, onDetails }) {
-  const [method, setMethod] = useState('hybrid')
+export default function Recommendations({ user, onRate, onDetails }) {
+  const [mode, setMode] = useState('balanced')
   const [movies, setMovies] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -14,17 +14,17 @@ export default function Recommendations({ user, token, onRate, onDetails }) {
 
   useEffect(() => {
     let active = true
-    api.recommendations(token, method)
+    api.recommendations(mode)
       .then((items) => active && setMovies(items))
       .catch((requestError) => active && setError(requestError.message))
       .finally(() => active && setLoading(false))
     return () => { active = false }
-  }, [method, reloadKey, token])
+  }, [mode, reloadKey])
 
   const changeMethod = (value) => {
     setLoading(true)
     setError('')
-    setMethod(value)
+    setMode(value)
   }
   const reload = () => {
     setLoading(true)
@@ -42,8 +42,8 @@ export default function Recommendations({ user, token, onRate, onDetails }) {
       />
       <div className="method-bar">
         <div className="segmented" aria-label={COPY.recommendations.listEyebrow}>
-          {METHOD_OPTIONS.map(([value, label]) => (
-            <button type="button" key={value} aria-pressed={method === value} className={method === value ? 'selected' : ''} onClick={() => changeMethod(value)}>{label}</button>
+          {MODE_OPTIONS.map(([value, label]) => (
+            <button type="button" key={value} aria-pressed={mode === value} className={mode === value ? 'selected' : ''} onClick={() => changeMethod(value)}>{label}</button>
           ))}
         </div>
         <button type="button" className="refresh" onClick={reload}>

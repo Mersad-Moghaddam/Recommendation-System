@@ -7,20 +7,28 @@
     "dev": "vite --host 127.0.0.1",
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "test": "vitest run",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",
-    "react": "^19.3.0-canary-f1f7ed2a-20260904",
-    "react-dom": "^19.3.0-canary-f1f7ed2a-20260904"
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
   },
   "devDependencies": {
     "@eslint/js": "latest",
+    "@playwright/test": "^1.63.0",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
     "@vitejs/plugin-react": "latest",
     "eslint": "latest",
     "eslint-plugin-react-hooks": "latest",
     "eslint-plugin-react-refresh": "latest",
     "globals": "latest",
-    "vite": "latest"
+    "jsdom": "^30.0.1",
+    "vite": "latest",
+    "vite-plugin-pwa": "^1.0.3",
+    "vitest": "^5.0.0"
   }
 }

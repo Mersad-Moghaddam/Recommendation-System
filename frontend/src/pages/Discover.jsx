@@ -20,12 +20,12 @@ export default function Discover({ user, onRate, onDetails, params, replaceParam
   const [error, setError] = useState('')
 
   useEffect(() => {
-    let active = true
-    api.movies({ query: filters.query, iranian: filters.iranian, genre: filters.genre, skip: filters.page * 24 })
-      .then((items) => active && setMovies(items))
-      .catch((requestError) => active && setError(requestError.message))
-      .finally(() => active && setLoading(false))
-    return () => { active = false }
+    const controller = new AbortController()
+    api.movies({ query: filters.query, iranian: filters.iranian, genre: filters.genre, skip: filters.page * 24, signal: controller.signal })
+      .then(setMovies)
+      .catch((requestError) => requestError.name !== 'AbortError' && setError(requestError.message))
+      .finally(() => !controller.signal.aborted && setLoading(false))
+    return () => controller.abort()
   }, [filters.genre, filters.iranian, filters.page, filters.query])
 
   const updateFilters = (next) => {

@@ -1,22 +1,20 @@
-import { ViewTransition } from 'react'
 import MovieCard, { CompactMovieCard } from './MovieCard'
 import { Empty, Loading } from './UI'
 import { movieId } from '../utils'
 
-function Grid({ movies, loading, user, onRate, onDetails, emptyTitle, CardComponent }) {
-  if (loading) return <Loading />
+function Grid({ movies, loading, onRate, onDetails, emptyTitle, CardComponent, compact = false }) {
+  if (loading) return <Loading compact={compact} />
   if (!movies?.length) return <Empty title={emptyTitle} />
   return (
     <div className="movie-grid">
       {movies.map((movie, index) => (
-        <ViewTransition key={movieId(movie)} update="auto" default="none">
-          <CardComponent
-            movie={movie}
-            index={index}
-            onRate={user ? onRate : undefined}
-            onDetails={onDetails}
-          />
-        </ViewTransition>
+        <CardComponent
+          key={movieId(movie)}
+          movie={movie}
+          index={index}
+          onRate={onRate}
+          onDetails={onDetails}
+        />
       ))}
     </div>
   )
@@ -27,5 +25,5 @@ export default function MovieGrid(props) {
 }
 
 export function CompactMovieGrid(props) {
-  return <Grid {...props} CardComponent={CompactMovieCard} />
+  return <Grid {...props} CardComponent={CompactMovieCard} compact />
 }

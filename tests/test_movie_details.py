@@ -18,7 +18,8 @@ def test_movie_details_preserve_real_metadata_and_rating():
     assert details["genres"] == ["Drama", "Sci-Fi"]
     assert details["rating_average"] == 4.12
     assert details["rating_count"] == 24
-    assert details["data_note"] == MOVIE_DETAIL_COPY["data_note"]
+    assert details["data_note"] == MOVIE_DETAIL_COPY["data_note_fallback"]
+    assert details["overview_short"] is None
 
 
 def test_movie_details_identify_local_persian_catalog():

@@ -4,16 +4,24 @@ import { faNumber, genreFa, titleWithoutYear } from '../utils'
 import { CardArtwork } from './MovieArtwork'
 
 function MovieCardFrame({ movie, index, onDetails, onRate, className }) {
-  const title = titleWithoutYear(movie.title)
+  const title = movie.display_title || titleWithoutYear(movie.title)
   return (
     <article className={`movie-card ${className}`} style={{ '--delay': `${Math.min(index, 5) * 18}ms` }}>
-      <button className="movie-card-main" type="button" onClick={() => onDetails(movie)} aria-label={COPY.card.detailsAria(title)}>
+      <button className="movie-card-main" type="button" onClick={() => onDetails(movie)}>
         <CardArtwork movie={movie} index={index} />
         <span className="movie-copy">
           <span className="genre-row">
             {movie.genres?.slice(0, 3).map((genre) => <span key={genre}>{genreFa(genre)}</span>)}
           </span>
           <strong className="movie-title" title={movie.title}>{title}</strong>
+          {movie.year ? <span className="movie-year">{faNumber(movie.year)}</span> : null}
+          <span
+            className="movie-overview"
+            lang={movie.overview_locale || undefined}
+            dir={movie.overview_locale === 'en' ? 'ltr' : 'rtl'}
+          >
+            {movie.overview_short || COPY.card.noOverview}
+          </span>
           {movie.score != null ? (
             <span className="match"><Sparkles size={14} aria-hidden="true" />{COPY.card.match(faNumber(Math.round(movie.score * 100)))}</span>
           ) : null}

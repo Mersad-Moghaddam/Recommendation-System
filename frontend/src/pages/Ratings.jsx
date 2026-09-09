@@ -5,19 +5,19 @@ import { Empty, ErrorMessage, Hero, Loading } from '../components/UI'
 import { COPY } from '../constants/copy'
 import { faNumber, genreFa } from '../utils'
 
-export default function Ratings({ token, navigate, onDetails }) {
+export default function Ratings({ navigate, onDetails }) {
   const [ratings, setRatings] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   useEffect(() => {
     let active = true
-    api.ratings(token)
+    api.ratings()
       .then((items) => active && setRatings(items))
       .catch((requestError) => active && setError(requestError.message))
       .finally(() => active && setLoading(false))
     return () => { active = false }
-  }, [token])
+  }, [])
 
   return (
     <>

@@ -1,19 +1,25 @@
 import { useState } from 'react'
-import { ArrowCounterClockwise as RotateCcw, Brain as BrainCircuit, CaretLeft as ChevronLeft, CheckCircle, Coffee, Lightning, Planet, Shuffle, Sparkle as Sparkles, Sun } from '@phosphor-icons/react'
+import { ArrowCounterClockwise as RotateCcw, BatteryLow, Brain as BrainCircuit, CaretLeft as ChevronLeft, CheckCircle, ClockCounterClockwise, Coffee, Heart, HeartStraight, Lightning, Planet, RocketLaunch, Shuffle, Smiley, Sparkle as Sparkles, Sun } from '@phosphor-icons/react'
 import { api } from '../api'
 import MovieGrid from '../components/MovieGrid'
 import { ErrorMessage, Hero, SectionTitle, SpinnerLabel } from '../components/UI'
 import { COPY, ERA_OPTIONS, GENRE_OPTIONS, MOOD_OPTIONS, ORIGIN_OPTIONS } from '../constants/copy'
 import { faNumber } from '../utils'
 
-const INITIAL_FORM = { mood: 'Feel-good', genres: [], era: 'Any era', origin: 'Any', discovery: 55 }
+const INITIAL_FORM = { moods: ['feel_good'], genres: [], era: 'Any era', origin: 'Any', discovery: 55 }
 const MOOD_ICONS = {
-  'Feel-good': Sun,
-  Thrilled: Lightning,
-  Thoughtful: BrainCircuit,
-  Escape: Planet,
-  Comfort: Coffee,
-  'Surprise me': Shuffle,
+  feel_good: Sun,
+  need_laugh: Smiley,
+  low_energy: BatteryLow,
+  thrill: Lightning,
+  thoughtful: BrainCircuit,
+  emotional: Heart,
+  cozy: Coffee,
+  romantic: HeartStraight,
+  inspired: RocketLaunch,
+  nostalgic: ClockCounterClockwise,
+  escape: Planet,
+  surprise: Shuffle,
 }
 
 function optionLabel(options, value) {
@@ -26,6 +32,7 @@ export default function Concierge({ user, onRate, onDetails }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const selectedGenres = new Set(form.genres)
+  const selectedMoods = new Set(form.moods)
 
   const submit = async (event) => {
     event.preventDefault()
@@ -51,6 +58,21 @@ export default function Concierge({ user, onRate, onDetails }) {
         : current.genres.length < 5 ? [...current.genres, genre] : current.genres,
     }))
   }
+  const toggleMood = (mood) => {
+    setForm((current) => {
+      if (mood === 'surprise') return { ...current, moods: ['surprise'] }
+      const withoutSurprise = current.moods.filter((item) => item !== 'surprise')
+      if (withoutSurprise.includes(mood)) {
+        return withoutSurprise.length > 1
+          ? { ...current, moods: withoutSurprise.filter((item) => item !== mood) }
+          : current
+      }
+      return {
+        ...current,
+        moods: withoutSurprise.length < 2 ? [...withoutSurprise, mood] : [withoutSurprise[0], mood],
+      }
+    })
+  }
 
   return (
     <>
@@ -67,9 +89,9 @@ export default function Concierge({ user, onRate, onDetails }) {
             <div className="mood-grid">
               {MOOD_OPTIONS.map(([value, label]) => {
                 const MoodIcon = MOOD_ICONS[value]
-                const selected = form.mood === value
+                const selected = selectedMoods.has(value)
                 return (
-                  <button type="button" key={value} aria-pressed={selected} className={`choice-card ${selected ? 'selected' : ''}`} onClick={() => setForm({ ...form, mood: value })}>
+                  <button type="button" key={value} aria-pressed={selected} className={`choice-card ${selected ? 'selected' : ''}`} onClick={() => toggleMood(value)}>
                     <MoodIcon size={27} weight={selected ? 'fill' : 'duotone'} aria-hidden="true" />
                     <b>{label}</b>
                     <CheckCircle className="choice-check" weight="fill" aria-hidden="true" />
@@ -106,7 +128,7 @@ export default function Concierge({ user, onRate, onDetails }) {
         <aside className="quiz-summary" aria-label={COPY.concierge.summaryTitle}>
           <div className="summary-heading"><span><Sparkles size={22} weight="fill" aria-hidden="true" /></span><div><h2>{COPY.concierge.summaryTitle}</h2><p>{COPY.concierge.summaryHint}</p></div></div>
           <dl>
-            <SummaryRow label={COPY.concierge.summaryMood} value={optionLabel(MOOD_OPTIONS, form.mood)} />
+            <SummaryRow label={COPY.concierge.summaryMood} value={form.moods.map((mood) => optionLabel(MOOD_OPTIONS, mood)).join(' + ')} />
             <SummaryRow label={COPY.concierge.summaryGenres} value={form.genres.length ? form.genres.map((genre) => optionLabel(GENRE_OPTIONS, genre)).join('، ') : COPY.concierge.noGenres} />
             <SummaryRow label={COPY.concierge.summaryOrigin} value={optionLabel(ORIGIN_OPTIONS, form.origin)} />
             <SummaryRow label={COPY.concierge.summaryEra} value={optionLabel(ERA_OPTIONS, form.era)} />

@@ -47,26 +47,27 @@ def test_quiz_can_limit_results_to_iranian_cinema():
 
 
 @pytest.mark.parametrize(("kwargs", "message_key"), [
-    ({"mood": "Unknown", "genres": []}, "invalid_mood"),
-    ({"mood": "Feel-good", "genres": ["Unknown"]}, "invalid_genre"),
-    ({"mood": "Feel-good", "genres": [], "era": "Future"}, "invalid_era"),
-    ({"mood": "Feel-good", "genres": [], "origin": "Local"}, "invalid_origin"),
-    ({"mood": "Feel-good", "genres": [], "discovery": 101}, "invalid_discovery"),
+    ({"moods": ["Unknown"], "genres": []}, "invalid_mood"),
+    ({"moods": ["feel_good"], "genres": ["Unknown"]}, "invalid_genre"),
+    ({"moods": ["feel_good"], "genres": [], "era": "Future"}, "invalid_era"),
+    ({"moods": ["feel_good"], "genres": [], "origin": "Local"}, "invalid_origin"),
+    ({"moods": ["feel_good"], "genres": [], "discovery": 101}, "invalid_discovery"),
 ])
 def test_preference_quiz_validates_direct_calls(kwargs, message_key):
     with pytest.raises(ValueError, match=ERROR_MESSAGES[message_key]):
         sample_engine().preference_quiz(**kwargs)
 
 
-def test_content_method_falls_back_when_user_has_no_positive_ratings():
+def test_content_method_uses_negative_ratings_to_avoid_disliked_space():
     base = sample_engine()
     low_ratings = pd.DataFrame([(4, 1, 1.0), (4, 3, 2.0)], columns=["userId", "movieId", "rating"])
     engine = RecommendationEngine(base.movies, pd.concat([base.ratings, low_ratings]), cold_start_ratings=2)
 
-    results = engine.recommend(4, "content", 2)
+    results = engine.recommend(4, "content", 3)
 
     assert results
-    assert all(item["reason"] == RECOMMENDATION_REASONS["popular"] for item in results)
+    assert all(item["reason"] == RECOMMENDATION_REASONS["content"] for item in results)
+    assert results[-1]["movie_id"] == 2
 
 
 def test_recommend_validates_hybrid_weight_and_limit():

@@ -1,4 +1,3 @@
-import { ViewTransition } from 'react'
 import { FilmSlate as Clapperboard, Play } from '@phosphor-icons/react'
 import { faNumber, movieId, titleWithoutYear, yearFromTitle } from '../utils'
 
@@ -19,17 +18,9 @@ function Artwork({ movie, index, className }) {
 }
 
 export function CardArtwork({ movie, index }) {
-  return (
-    <ViewTransition name={`movie-art-${movieId(movie)}`} share="morph" default="none">
-      <Artwork movie={movie} index={index} className="artwork-card" />
-    </ViewTransition>
-  )
+  return <Artwork movie={movie} index={index} className="artwork-card" />
 }
 
 export function DetailArtwork({ movie }) {
-  return (
-    <ViewTransition name={`movie-art-${movieId(movie)}`} share="morph" default="none">
-      <Artwork movie={movie} className="artwork-detail" />
-    </ViewTransition>
-  )
+  return <Artwork movie={movie} className="artwork-detail" />
 }

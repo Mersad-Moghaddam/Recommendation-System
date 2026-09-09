@@ -21,7 +21,9 @@ from database.database import SessionLocal, create_tables
 from database.models import Movie
 
 MOVIES_URL = "https://huggingface.co/datasets/hazemessam/ml-32m/resolve/main/movies.csv?download=true"
+LINKS_URL = "https://huggingface.co/datasets/hazemessam/ml-32m/resolve/main/links.csv?download=true"
 OFFICIAL_MOVIES_MD5 = "0df90835c19151f9d819d0822e190797"
+OFFICIAL_LINKS_MD5 = "8f033867bcb4e6be8792b21468b4fa6e"
 REQUIRED_COLUMNS = {"movieId", "title", "genres"}
 
 
@@ -52,6 +54,26 @@ def download_catalog(force: bool = False) -> Path:
     print(f"Official movies.csv checksum verified: {actual}")
     print(f"Movie catalog saved to {settings.expanded_movies_csv}")
     return settings.expanded_movies_csv
+
+
+def download_links(force: bool = False) -> Path:
+    """Download links.csv and verify its checksum from the official 32M README."""
+    settings.movie_links_csv.parent.mkdir(parents=True, exist_ok=True)
+    if settings.movie_links_csv.exists() and not force:
+        actual = file_md5(settings.movie_links_csv)
+        if actual == OFFICIAL_LINKS_MD5:
+            print(f"Movie links already exist and checksum is valid: {settings.movie_links_csv}")
+            return settings.movie_links_csv
+    partial = settings.movie_links_csv.with_suffix(".csv.part")
+    print("Downloading MovieLens 32M links.csv...")
+    urlretrieve(LINKS_URL, partial)
+    actual = file_md5(partial)
+    if actual != OFFICIAL_LINKS_MD5:
+        partial.unlink(missing_ok=True)
+        raise RuntimeError(f"Checksum mismatch for links.csv: expected {OFFICIAL_LINKS_MD5}, got {actual}")
+    partial.replace(settings.movie_links_csv)
+    print(f"Official links.csv checksum verified: {actual}")
+    return settings.movie_links_csv
 
 
 def validate_catalog(path: Path) -> pd.DataFrame:
@@ -94,6 +116,7 @@ def main() -> None:
     parser.add_argument("--force-download", action="store_true", help="download and replace the cached catalog CSV")
     args = parser.parse_args()
     catalog_path = download_catalog(args.force_download)
+    download_links(args.force_download)
     movies = validate_catalog(catalog_path)
     added, total = import_movies(movies)
     print(f"Validated {len(movies):,} MovieLens movies; added {added:,}; database total: {total:,}")

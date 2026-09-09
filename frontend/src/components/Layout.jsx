@@ -1,4 +1,4 @@
-import { Brain as BrainCircuit, Compass, Database, FilmSlate as Clapperboard, Heart, House as Home, SignIn as LogIn, Sparkle as Sparkles, Star, UserCircle as UserRound } from '@phosphor-icons/react'
+import { Brain as BrainCircuit, Compass, FilmSlate as Clapperboard, Heart, House as Home, SignIn as LogIn, Sparkle as Sparkles, Star, UserCircle as UserRound } from '@phosphor-icons/react'
 import { COPY, NAV_ITEMS } from '../constants/copy'
 
 const ICONS = { home: Home, concierge: BrainCircuit, discover: Compass, recommendations: Heart, ratings: Star }
@@ -66,24 +66,34 @@ export default function Layout({ children, page, navigate, user, logout }) {
       </aside>
       <main id="main-content" className="main-content">
         {children}
-        <footer className="site-footer">
-          <div className="footer-lead">
-            <span className="eyebrow">{COPY.layout.footerEyebrow}</span>
-            <h2>{COPY.layout.footerTitle}</h2>
-            <p>{COPY.layout.footerText}</p>
-          </div>
-          <div className="footer-data"><Database size={20} aria-hidden="true" /><p>{COPY.layout.footerData}</p></div>
-          <nav className="footer-nav" aria-label={COPY.layout.footerNavLabel}>
-            {FOOTER_ITEMS.map((item) => (
-              <a key={item.id} href={`/#${item.id}`} onClick={(event) => navigate(item.id, event)}>{item.label}</a>
-            ))}
-          </nav>
-          <Sparkles className="footer-spark" aria-hidden="true" />
-        </footer>
       </main>
       <div className="mobile-nav" style={{ viewTransitionName: 'persistent-mobile-nav' }}>
         <Navigation page={page} navigate={navigate} user={user} />
       </div>
     </div>
+  )
+}
+
+export function SiteFooter({ navigate }) {
+  return (
+    <footer className="site-footer">
+      <div className="footer-lead">
+        <span className="eyebrow">{COPY.layout.footerEyebrow}</span>
+        <h2>{COPY.layout.footerTitle}</h2>
+        <p>{COPY.layout.footerText}</p>
+      </div>
+      <div className="footer-data">
+        <a href="https://www.themoviedb.org" target="_blank" rel="noreferrer" aria-label="وب‌سایت TMDB">
+          <img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" width="92" height="66" alt="TMDB" loading="lazy" />
+        </a>
+        <p>{COPY.layout.footerData}</p>
+      </div>
+      <nav className="footer-nav" aria-label={COPY.layout.footerNavLabel}>
+        {FOOTER_ITEMS.map((item) => (
+          <a key={item.id} href={`/#${item.id}`} onClick={(event) => navigate(item.id, event)}>{item.label}</a>
+        ))}
+      </nav>
+      <Sparkles className="footer-spark" aria-hidden="true" />
+    </footer>
   )
 }
