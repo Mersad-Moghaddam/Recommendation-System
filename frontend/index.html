@@ -2,8 +2,8 @@
 <html lang="fa" dir="rtl">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#10172A" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#F5F1E8" />
     <meta name="description" content="سینمچ؛ پیشنهاد هوشمند، سریع و توضیح‌پذیر فیلم برای امشب" />
     <meta name="application-name" content="سینمچ" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -12,10 +12,19 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="preload" href="/fonts/Vazirmatn.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/Estedad.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="/images/shabnama-hero.webp" as="image" type="image/webp" fetchpriority="high" />
+    <link rel="preload" href="/images/tehran-premiere.webp" as="image" type="image/webp" fetchpriority="high" />
+    <script>try{const t=localStorage.getItem('cinematch-theme-v1');document.documentElement.dataset.theme=t==='light'||t==='dark'?t:matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.querySelector('meta[name="theme-color"]').content=document.documentElement.dataset.theme==='dark'?'#070811':'#F5F1E8'}catch(e){}</script>
     <title>سینمچ | پیشنهاد هوشمند فیلم</title>
   </head>
   <body>
+    <!--
+      DESIGN CONTRACT — Tehran Premiere
+      World: contemporary Tehran premiere, lacquer, lapis projection light, celluloid gold.
+      Job: get a trusted film choice for tonight with minimal browsing.
+      Signature: the marquee rail unifies route, PWA state, install, and theme controls.
+      Layout: mobile app chrome first; cinematic masthead and wide content rhythm on desktop.
+      Risk: visual drama must never overpower task clarity, RTL flow, or accessibility.
+    -->
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

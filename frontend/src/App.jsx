@@ -3,7 +3,6 @@ import { CheckCircle as CheckCircle2, Star, WarningCircle as AlertCircle } from 
 import { api } from './api'
 import Layout, { SiteFooter } from './components/Layout'
 import PageTransition from './components/PageTransition'
-import PwaStatus from './components/PwaStatus'
 import { Dialog, PageLoading, SpinnerLabel } from './components/UI'
 import { COPY } from './constants/copy'
 import { faNumber, movieId } from './utils'
@@ -208,7 +207,6 @@ export default function App() {
   const activePage = route.page === 'detail' ? (route.params.get('from') || 'home').split('?')[0] : route.page
   return (
     <Layout page={activePage} navigate={navigate} user={user} logout={logout}>
-      <PwaStatus />
       <Suspense fallback={<PageLoading />}>
         <PageTransition key={`${route.page}-${route.params.get('id') || ''}`}>
           <AppPage route={route} user={user} detailSeed={detailSeed} navigate={navigate} changeRoute={changeRoute} changeRawRoute={changeRawRoute} replaceParams={replaceParams} openDetails={openDetails} openRate={openRate} showError={showError} authenticate={authenticate} />

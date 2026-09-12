@@ -7,7 +7,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'prompt',
-      includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'fonts/*.woff2', 'images/shabnama-hero.webp'],
+      includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'fonts/*.woff2', 'images/tehran-premiere.webp'],
       manifest: {
         name: 'سینمچ — پیشنهاد هوشمند فیلم',
         short_name: 'سینمچ',
@@ -17,8 +17,8 @@ export default defineConfig({
         start_url: '/#home',
         scope: '/',
         display: 'standalone',
-        background_color: '#F4F0E7',
-        theme_color: '#10172A',
+        background_color: '#F5F1E8',
+        theme_color: '#070811',
         categories: ['entertainment', 'lifestyle'],
         icons: [
           { src: '/pwa-192x192.png', sizes: '192x192', type: 'image/png' },

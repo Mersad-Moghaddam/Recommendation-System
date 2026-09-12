@@ -28,7 +28,7 @@ export default function Home({ navigate, user, onRate, onDetails, showError }) {
     <>
       <Hero
         className="home-hero"
-        visual={<img className="hero-visual" src="/images/shabnama-hero.webp" alt="" width="1916" height="821" fetchPriority="high" />}
+        visual={<img className="hero-visual" src="/images/tehran-premiere.webp" alt="" width="1942" height="817" fetchPriority="high" />}
         eyebrow={COPY.home.eyebrow}
         title={<>{COPY.home.titleStart}<br /><em>{COPY.home.titleAccent}</em></>}
         description={COPY.home.description}

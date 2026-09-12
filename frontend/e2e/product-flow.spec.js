@@ -81,3 +81,32 @@ test('install prompt replaces the catalog count without an icon', async ({ page 
   await expect(prompt.locator('svg')).toHaveCount(0)
   await expect(page.getByText('۸۷ هزار فیلم')).toHaveCount(0)
 })
+
+test('theme switch persists and every route fits the viewport', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'dark' })
+  await page.goto('/#home')
+  await page.evaluate(() => localStorage.removeItem('cinematch-theme-v1'))
+  await page.reload()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+  await page.emulateMedia({ colorScheme: 'light' })
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
+  const themeButton = page.getByRole('button', { name: 'فعال‌کردن نمای تاریک' })
+  await themeButton.click()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+  await page.reload()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+  for (const route of ['home', 'discover', 'auth']) {
+    await page.goto(`/#${route}`)
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
+    expect(overflow).toBeLessThanOrEqual(1)
+  }
+})
+
+test('authentication validation is inline, announced, and focuses the first error', async ({ page }) => {
+  await page.goto('/#auth')
+  await page.getByRole('button', { name: 'ورود' }).last().click()
+  await expect(page.getByLabel('نام کاربری')).toBeFocused()
+  await expect(page.getByLabel('نام کاربری')).toHaveAttribute('aria-invalid', 'true')
+  await expect(page.getByText('نام کاربری را وارد کنید.')).toBeVisible()
+  await expect(page.getByText('گذرواژه را وارد کنید.')).toBeVisible()
+})
