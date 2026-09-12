@@ -4,23 +4,11 @@ import { FilmReel as Film, SpinnerGap as LoaderCircle, WarningCircle as AlertCir
 import { COPY } from '../constants/copy'
 
 export function Hero({ eyebrow, title, description, children, visual, className = '' }) {
-  const headerVisual = visual || (
-    <img
-      className="hero-visual"
-      src="/images/cinema-hero.webp"
-      alt=""
-      width="1599"
-      height="900"
-      fetchPriority="high"
-    />
-  )
-
   return (
     <section className={`hero ${className}`}>
-      {headerVisual}
-      <div className="hero-film-strip" aria-hidden="true"><i /><i /><i /><i /><i /></div>
+      {visual ? <div className="hero-media" aria-hidden="true">{visual}</div> : null}
       <div className="hero-content">
-        <span className="eyebrow">{eyebrow}</span>
+        <span className="eyebrow"><i aria-hidden="true" />{eyebrow}</span>
         <h1>{title}</h1>
         <p>{description}</p>
         {children ? <div className="hero-actions">{children}</div> : null}

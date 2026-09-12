@@ -1,10 +1,20 @@
-import { Brain as BrainCircuit, Compass, FilmSlate as Clapperboard, Heart, House as Home, SignIn as LogIn, Sparkle as Sparkles, Star, UserCircle as UserRound } from '@phosphor-icons/react'
+import { Brain as BrainCircuit, Compass, Heart, House as Home, SignIn as LogIn, Sparkle as Sparkles, Star, UserCircle as UserRound } from '@phosphor-icons/react'
 import { COPY, NAV_ITEMS } from '../constants/copy'
 
 const ICONS = { home: Home, concierge: BrainCircuit, discover: Compass, recommendations: Heart, ratings: Star }
 const FOOTER_ITEMS = []
 for (const item of NAV_ITEMS) {
   if (!item.auth) FOOTER_ITEMS.push(item)
+}
+
+function BrandGlyph() {
+  return (
+    <svg viewBox="0 0 40 40" role="img" aria-hidden="true">
+      <path d="M8 32V18C8 10.8 13.4 5 20 5s12 5.8 12 13v14" />
+      <path d="M14.5 32V19.5c0-3.7 2.5-6.5 5.5-6.5s5.5 2.8 5.5 6.5V32" />
+      <path className="brand-glyph-play" d="m18 20 7 4-7 4Z" />
+    </svg>
+  )
 }
 
 function Navigation({ page, navigate, user }) {
@@ -36,7 +46,7 @@ export default function Layout({ children, page, navigate, user, logout }) {
       <a className="skip-link" href="#main-content">{COPY.app.skipLink}</a>
       <header className="mobile-header">
         <a className="mobile-brand" href="/#home" onClick={(event) => navigate('home', event)} aria-label={COPY.layout.brandLabel}>
-          <span className="brand-mark"><Clapperboard size={22} aria-hidden="true" /></span>
+          <span className="brand-mark"><BrandGlyph /></span>
           <span><b>{COPY.layout.brandStart}</b>{COPY.layout.brandEnd}</span>
         </a>
         {user ? (
@@ -51,7 +61,7 @@ export default function Layout({ children, page, navigate, user, logout }) {
       </header>
       <aside className="sidebar" style={{ viewTransitionName: 'persistent-nav' }}>
         <a className="brand" href="/#home" onClick={(event) => navigate('home', event)} aria-label={COPY.layout.brandLabel}>
-          <span className="brand-mark"><Clapperboard size={25} aria-hidden="true" /></span>
+          <span className="brand-mark"><BrandGlyph /></span>
           <span><b>{COPY.layout.brandStart}</b>{COPY.layout.brandEnd}<small>{COPY.layout.tagline}</small></span>
         </a>
         <Navigation page={page} navigate={navigate} user={user} />
@@ -91,7 +101,7 @@ export function SiteFooter({ navigate }) {
       </div>
       <div className="footer-data">
         <a href="https://www.themoviedb.org" target="_blank" rel="noreferrer" aria-label="وب‌سایت TMDB">
-          <img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" width="92" height="66" alt="TMDB" loading="lazy" />
+          <span className="tmdb-wordmark" lang="en" dir="ltr" translate="no">TMDB</span>
         </a>
         <p>{COPY.layout.footerData}</p>
       </div>

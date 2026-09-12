@@ -46,7 +46,6 @@ export default function MovieDetails({ id, seed, user, onRate, onDetails, goBack
 function DetailHero({ movie, details, onRate }) {
   return (
     <article className="detail-hero">
-      <img className="detail-hero-visual" src="/images/cinema-hero.webp" alt="" width="1599" height="900" fetchPriority="high" />
       <div className="detail-poster"><DetailArtwork movie={movie} /></div>
       <div className="detail-main">
         <span className="eyebrow">{COPY.details.eyebrow}</span>
@@ -59,9 +58,9 @@ function DetailHero({ movie, details, onRate }) {
             {details.overview}
           </p>
         ) : <p className="detail-loading">{COPY.details.loading}</p>}
+        <DetailFacts details={details} />
         <div className="detail-actions"><button type="button" className="button primary" onClick={() => onRate(movie)}><Star size={18} aria-hidden="true" />{COPY.details.rateAction}</button></div>
       </div>
-      <DetailFacts details={details} />
     </article>
   )
 }

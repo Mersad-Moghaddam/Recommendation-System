@@ -1,0 +1,70 @@
+/* Shabnama design tokens: primitive → semantic → component. */
+:root {
+  color-scheme: light;
+
+  --primitive-paper-50: #fbf9f4;
+  --primitive-paper-100: #f4f0e7;
+  --primitive-paper-200: #e8e0d2;
+  --primitive-ink-950: #10172a;
+  --primitive-ink-800: #27324a;
+  --primitive-ink-600: #566078;
+  --primitive-turquoise-700: #11676c;
+  --primitive-turquoise-600: #167d82;
+  --primitive-turquoise-100: #dcecec;
+  --primitive-pomegranate-700: #84273d;
+  --primitive-pomegranate-600: #a3344d;
+  --primitive-pomegranate-100: #f2dfe3;
+  --primitive-saffron-600: #b37b16;
+  --primitive-saffron-100: #f7ebcd;
+  --primitive-white: #ffffff;
+  --primitive-danger: #a52d36;
+  --primitive-success: #20705c;
+
+  --color-canvas: var(--primitive-paper-100);
+  --color-surface: var(--primitive-paper-50);
+  --color-surface-raised: var(--primitive-white);
+  --color-ink: var(--primitive-ink-950);
+  --color-ink-soft: var(--primitive-ink-600);
+  --color-line: color-mix(in srgb, var(--primitive-ink-950) 13%, transparent);
+  --color-line-strong: color-mix(in srgb, var(--primitive-ink-950) 23%, transparent);
+  --color-primary: var(--primitive-pomegranate-600);
+  --color-primary-hover: var(--primitive-pomegranate-700);
+  --color-secondary: var(--primitive-turquoise-700);
+  --color-secondary-soft: var(--primitive-turquoise-100);
+  --color-rating: var(--primitive-saffron-600);
+  --color-rating-soft: var(--primitive-saffron-100);
+  --color-focus: var(--primitive-turquoise-600);
+
+  --font-display: 'Estedad', 'Vazirmatn', Tahoma, sans-serif;
+  --font-body: 'Vazirmatn', Tahoma, sans-serif;
+  --font-numeric: 'Estedad', 'Vazirmatn', sans-serif;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: clamp(1.2rem, 1.6vw, 1.5rem);
+  --text-xl: clamp(1.7rem, 3vw, 2.6rem);
+  --text-display: clamp(2.7rem, 6vw, 6.4rem);
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4.5rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.9rem;
+  --radius-lg: 1.4rem;
+  --shadow-raised: 0 18px 55px rgba(16, 23, 42, 0.1);
+
+  --button-bg: var(--color-primary);
+  --button-text: var(--primitive-white);
+  --button-border: transparent;
+  --card-bg: var(--color-surface-raised);
+  --card-border: var(--color-line);
+  --nav-active-bg: var(--primitive-ink-950);
+  --nav-active-text: var(--primitive-white);
+  --input-bg: var(--primitive-white);
+  --input-border: var(--color-line-strong);
+}

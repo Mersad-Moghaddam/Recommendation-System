@@ -28,7 +28,7 @@ export default function Home({ navigate, user, onRate, onDetails, showError }) {
     <>
       <Hero
         className="home-hero"
-        visual={<img className="hero-visual" src="/images/cinema-hero.webp" alt="" width="1599" height="900" fetchPriority="high" />}
+        visual={<img className="hero-visual" src="/images/shabnama-hero.webp" alt="" width="1916" height="821" fetchPriority="high" />}
         eyebrow={COPY.home.eyebrow}
         title={<>{COPY.home.titleStart}<br /><em>{COPY.home.titleAccent}</em></>}
         description={COPY.home.description}
@@ -52,9 +52,9 @@ export default function Home({ navigate, user, onRate, onDetails, showError }) {
       <section className="how-section">
         <SectionTitle eyebrow={COPY.home.howEyebrow} title={COPY.home.howTitle} />
         <div className="feature-grid">
-          <Feature number="01" title={COPY.home.featureOneTitle} text={COPY.home.featureOneText} />
-          <Feature number="02" title={COPY.home.featureTwoTitle} text={COPY.home.featureTwoText} />
-          <Feature number="03" title={COPY.home.featureThreeTitle} text={COPY.home.featureThreeText} />
+          <Feature number="۱" title={COPY.home.featureOneTitle} text={COPY.home.featureOneText} />
+          <Feature number="۲" title={COPY.home.featureTwoTitle} text={COPY.home.featureTwoText} />
+          <Feature number="۳" title={COPY.home.featureThreeTitle} text={COPY.home.featureThreeText} />
         </div>
       </section>
 
