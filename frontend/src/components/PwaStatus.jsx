@@ -1,10 +1,22 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import { ArrowClockwise, WifiSlash, X } from '@phosphor-icons/react'
 import { useRegisterSW } from 'virtual:pwa-register/react'
 import { COPY } from '../constants/copy'
 
+function subscribeToConnectivity(callback) {
+  window.addEventListener('online', callback)
+  window.addEventListener('offline', callback)
+  return () => {
+    window.removeEventListener('online', callback)
+    window.removeEventListener('offline', callback)
+  }
+}
+
+const getOnlineSnapshot = () => navigator.onLine
+const getServerOnlineSnapshot = () => true
+
 export default function PwaStatus() {
-  const [online, setOnline] = useState(navigator.onLine)
+  const online = useSyncExternalStore(subscribeToConnectivity, getOnlineSnapshot, getServerOnlineSnapshot)
   const [installEvent, setInstallEvent] = useState(null)
   const [dismissedIos, setDismissedIos] = useState(false)
   const {
@@ -13,17 +25,12 @@ export default function PwaStatus() {
   } = useRegisterSW()
 
   useEffect(() => {
-    const updateOnline = () => setOnline(navigator.onLine)
     const captureInstall = (event) => {
       event.preventDefault()
       setInstallEvent(event)
     }
-    window.addEventListener('online', updateOnline)
-    window.addEventListener('offline', updateOnline)
     window.addEventListener('beforeinstallprompt', captureInstall)
     return () => {
-      window.removeEventListener('online', updateOnline)
-      window.removeEventListener('offline', updateOnline)
       window.removeEventListener('beforeinstallprompt', captureInstall)
     }
   }, [])

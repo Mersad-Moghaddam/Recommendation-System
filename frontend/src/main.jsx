@@ -6,6 +6,6 @@ import './styles.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <IconContext.Provider value={{ weight: 'duotone' }}><App /></IconContext.Provider>
+    <IconContext.Provider value={{ weight: 'duotone', size: 20 }}><App /></IconContext.Provider>
   </StrictMode>,
 )

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { CaretLeft as ChevronLeft, CaretRight as ChevronRight, MagnifyingGlass as Search, SlidersHorizontal } from '@phosphor-icons/react'
+import { CaretLeft as ChevronLeft, CaretRight as ChevronRight, MagnifyingGlass as Search, SlidersHorizontal, X } from '@phosphor-icons/react'
 import { api } from '../api'
 import MovieGrid from '../components/MovieGrid'
 import { ErrorMessage, Hero, SectionTitle } from '../components/UI'
@@ -49,6 +49,10 @@ export default function Discover({ user, onRate, onDetails, onTrack, params, rep
     })
   }
   const search = (event) => { event.preventDefault(); updateFilters({ query: draft.trim(), page: 0 }) }
+  const clearSearch = () => {
+    setDraft('')
+    if (filters.query) updateFilters({ query: '', page: 0 })
+  }
   const clearFilters = () => { setDraft(''); updateFilters({ query: '', iranian: false, genre: '', page: 0 }) }
 
   return (
@@ -62,7 +66,8 @@ export default function Discover({ user, onRate, onDetails, onTrack, params, rep
         <form className="search-box" onSubmit={search}>
           <Search size={20} aria-hidden="true" />
           <input name="movie-search" autoComplete="off" value={draft} onChange={(event) => setDraft(event.target.value)} placeholder={COPY.discover.searchPlaceholder} aria-label={COPY.discover.searchLabel} />
-          <button type="submit">{COPY.discover.searchAction}</button>
+          {draft ? <button type="button" className="search-clear" onClick={clearSearch} aria-label={COPY.discover.clearSearch}><X aria-hidden="true" /></button> : null}
+          <button type="submit" className="search-submit">{COPY.discover.searchAction}</button>
         </form>
         <div className="filter-bar">
           <span><SlidersHorizontal size={17} aria-hidden="true" />{COPY.discover.filters}</span>

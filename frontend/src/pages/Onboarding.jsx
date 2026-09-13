@@ -46,11 +46,13 @@ export default function Onboarding({ navigate, next }) {
   }
   const skip = async () => {
     setSaving(true)
+    setError('')
     try {
       await api.skipOnboarding()
       navigate(next)
     } catch (requestError) {
       setError(requestError.message)
+    } finally {
       setSaving(false)
     }
   }

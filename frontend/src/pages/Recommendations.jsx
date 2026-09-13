@@ -23,10 +23,18 @@ export default function Recommendations({ user, onRate, onDetails, onTrack }) {
   }, [mediaType, mode, reloadKey])
 
   const changeMethod = (value) => {
+    if (value === mode) return
     setLoading(true)
     setError('')
     setMovies([])
     setMode(value)
+  }
+  const changeMediaType = (value) => {
+    if (value === mediaType) return
+    setLoading(true)
+    setError('')
+    setMovies([])
+    setMediaType(value)
   }
   const reload = () => {
     setLoading(true)
@@ -44,8 +52,8 @@ export default function Recommendations({ user, onRate, onDetails, onTrack }) {
         description={COPY.recommendations.description}
       />
       <div className="media-switch segmented" aria-label="نوع پیشنهاد">
-        <button type="button" aria-pressed={mediaType === 'movie'} className={mediaType === 'movie' ? 'selected' : ''} onClick={() => { setLoading(true); setMovies([]); setMediaType('movie') }}>{COPY.recommendations.moviesTab}</button>
-        <button type="button" aria-pressed={mediaType === 'serial'} className={mediaType === 'serial' ? 'selected' : ''} onClick={() => { setLoading(true); setMovies([]); setMediaType('serial') }}>{COPY.recommendations.serialsTab}</button>
+        <button type="button" aria-pressed={mediaType === 'movie'} className={mediaType === 'movie' ? 'selected' : ''} onClick={() => changeMediaType('movie')}>{COPY.recommendations.moviesTab}</button>
+        <button type="button" aria-pressed={mediaType === 'serial'} className={mediaType === 'serial' ? 'selected' : ''} onClick={() => changeMediaType('serial')}>{COPY.recommendations.serialsTab}</button>
       </div>
       <div className="method-bar">
         <div className="segmented" aria-label={COPY.recommendations.listEyebrow}>

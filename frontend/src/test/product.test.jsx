@@ -5,6 +5,7 @@ import Concierge from '../pages/Concierge'
 import Discover from '../pages/Discover'
 import MovieDetails from '../pages/MovieDetails'
 import Onboarding from '../pages/Onboarding'
+import Recommendations from '../pages/Recommendations'
 import Tracker from '../pages/Tracker'
 import { api } from '../api'
 
@@ -17,6 +18,7 @@ vi.mock('../api', () => ({
     onboarding: vi.fn(),
     rateBulk: vi.fn(),
     skipOnboarding: vi.fn(),
+    recommendations: vi.fn(),
     library: vi.fn(),
     activity: vi.fn(),
     saveLibrary: vi.fn(),
@@ -125,6 +127,27 @@ describe('product UI contracts', () => {
     expect(api.movies.mock.calls[0][0].skip).toBe(0)
   })
 
+  it('clears both the visible and committed discover search', async () => {
+    api.movies.mockResolvedValue([])
+    const replaceParams = vi.fn()
+    render(
+      <Discover
+        user={null}
+        onRate={() => {}}
+        onDetails={() => {}}
+        params={new URLSearchParams('q=Arrival')}
+        replaceParams={replaceParams}
+      />,
+    )
+
+    const searchInput = screen.getByRole('textbox', { name: 'جست‌وجوی فیلم' })
+    expect(searchInput).toHaveValue('Arrival')
+    fireEvent.click(screen.getByRole('button', { name: 'پاک‌کردن جست‌وجو' }))
+
+    expect(searchInput).toHaveValue('')
+    await waitFor(() => expect(replaceParams).toHaveBeenCalledWith(expect.objectContaining({ q: undefined, page: undefined })))
+  })
+
   it('never displays a detail seed belonging to another movie', async () => {
     api.movieDetails.mockRejectedValue(new Error('جزئیات پیدا نشد'))
     api.similar.mockResolvedValue([])
@@ -186,5 +209,36 @@ describe('product UI contracts', () => {
     await waitFor(() => expect(api.saveLibrary).toHaveBeenCalledWith(20, expect.objectContaining({
       status: 'watching', current_season: 2, current_episode: 4, watched_episodes: 12,
     })))
+  })
+
+  it('does not clear recommendations when the active filters are clicked again', async () => {
+    api.recommendations.mockResolvedValue([])
+    render(<Recommendations user={{ username: 'viewer' }} onRate={() => {}} onDetails={() => {}} onTrack={() => {}} />)
+    await waitFor(() => expect(api.recommendations).toHaveBeenCalledOnce())
+
+    fireEvent.click(screen.getByRole('button', { name: 'پیشنهاد فیلم' }))
+    fireEvent.click(screen.getByRole('button', { name: 'متعادل' }))
+
+    expect(api.recommendations).toHaveBeenCalledOnce()
+  })
+
+  it('confirms removal before deleting a tracker entry', async () => {
+    const entry = {
+      entry_id: 1, movie_id: 20, id: 20, display_title: 'Dark', title: 'Dark (2017)',
+      genres: ['Drama'], media_type: 'serial', status: 'watching', current_season: 2,
+      current_episode: 3, watched_episodes: 13, total_episodes: 26,
+      remaining_episodes: 13, progress_percent: 50,
+    }
+    api.library.mockResolvedValue([entry])
+    api.activity.mockResolvedValue({ days: [], total_units: 13, active_days: 1, current_streak: 1, longest_streak: 1 })
+    api.removeLibrary.mockResolvedValue(null)
+    render(<Tracker user={{ username: 'viewer' }} navigate={() => {}} onDetails={() => {}} showError={() => {}} />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'حذف از دفتر' }))
+    expect(api.removeLibrary).not.toHaveBeenCalled()
+    expect(screen.getByText('«Dark» از دفتر تماشا حذف شود؟')).toBeVisible()
+    fireEvent.click(screen.getByRole('button', { name: 'حذف عنوان' }))
+
+    await waitFor(() => expect(api.removeLibrary).toHaveBeenCalledWith(20))
   })
 })

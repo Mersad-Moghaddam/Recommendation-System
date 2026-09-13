@@ -1,9 +1,9 @@
-import { Brain as BrainCircuit, Compass, Heart, House as Home, SignIn as LogIn, SignOut, Sparkle as Sparkles, SquaresFour, UserCircle as UserRound } from '@phosphor-icons/react'
+import { Brain as BrainCircuit, ClockCounterClockwise, Compass, House as Home, SignIn as LogIn, SignOut, Sparkle as Sparkles, UserCircle as UserRound } from '@phosphor-icons/react'
 import { COPY, NAV_ITEMS } from '../constants/copy'
 import PwaStatus from './PwaStatus'
 import ThemeToggle from './ThemeToggle'
 
-const ICONS = { home: Home, concierge: BrainCircuit, discover: Compass, recommendations: Heart, tracker: SquaresFour }
+const ICONS = { home: Home, concierge: BrainCircuit, discover: Compass, recommendations: Sparkles, tracker: ClockCounterClockwise }
 const PAGE_LABELS = Object.fromEntries(NAV_ITEMS.map((item) => [item.id, item.label]))
 const FOOTER_ITEMS = NAV_ITEMS.filter((item) => !item.auth)
 

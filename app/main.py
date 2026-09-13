@@ -57,7 +57,7 @@ app = FastAPI(
 app.add_middleware(GZipMiddleware, minimum_size=700)
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=DEV_ORIGIN_PATTERN,
+    allow_origin_regex=None if settings.environment.lower() == "production" else DEV_ORIGIN_PATTERN,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
     allow_headers=["Content-Type"],
@@ -102,9 +102,13 @@ def validate_origin(request: Request, origin: str | None = Header(default=None))
     """Reject browser mutations initiated by a different origin."""
     configured = settings.api_url.rstrip("/")
     request_origin = f"{request.url.scheme}://{request.url.netloc}".rstrip("/")
+    development_origin = (
+        settings.environment.lower() != "production"
+        and re.fullmatch(DEV_ORIGIN_PATTERN, origin or "")
+    )
     if origin is None or (
         origin.rstrip("/") not in {configured, request_origin}
-        and not re.fullmatch(DEV_ORIGIN_PATTERN, origin)
+        and not development_origin
     ):
         raise HTTPException(403, ERROR_MESSAGES["invalid_origin_header"])
 

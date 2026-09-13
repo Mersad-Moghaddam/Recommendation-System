@@ -236,3 +236,25 @@ def test_cookie_auth_guard_bulk_onboarding_and_logout(product_db):
         logout_response = Response()
         logout(logout_response)
         assert "max-age=0" in logout_response.headers["set-cookie"].lower()
+
+
+def test_production_origin_validation_does_not_trust_localhost(product_db, monkeypatch):
+    from app import main
+
+    scope = {
+        "type": "http",
+        "scheme": "https",
+        "server": ("cinematch.example", 443),
+        "path": "/api/ratings",
+        "query_string": b"",
+        "headers": [],
+    }
+    monkeypatch.setattr(main, "settings", SimpleNamespace(
+        api_url="https://cinematch.example",
+        environment="production",
+    ))
+
+    with pytest.raises(HTTPException) as rejected:
+        main.validate_origin(Request(scope), "http://localhost:5173")
+    assert rejected.value.status_code == 403
+    main.validate_origin(Request(scope), "https://cinematch.example")

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ArrowLeft, Brain as BrainCircuit, Database, FilmReel as Film, Sparkle as Sparkles, UsersThree as Users } from '@phosphor-icons/react'
+import { ArrowLeft, Brain as BrainCircuit, FilmReel as Film, MapPin, Sparkle as Sparkles, Star, TelevisionSimple as Television, UsersThree as Users } from '@phosphor-icons/react'
 import { api } from '../api'
 import { CompactMovieGrid } from '../components/MovieGrid'
 import { Hero, SectionTitle } from '../components/UI'
@@ -44,10 +44,10 @@ export default function Home({ navigate, user, onRate, onDetails, onTrack, showE
 
       <section className="stats-strip" aria-label={COPY.home.statsLabel}>
         <Stat icon={Film} value={stats?.movies} label={COPY.home.statMovies} />
-        <Stat icon={Film} value={stats?.serials} label={COPY.home.statSerials} />
-        <Stat icon={Database} value={stats?.ratings} label={COPY.home.statRatings} />
+        <Stat icon={Television} value={stats?.serials} label={COPY.home.statSerials} />
+        <Stat icon={Star} value={stats?.ratings} label={COPY.home.statRatings} />
         <Stat icon={Users} value={stats?.users} label={COPY.home.statUsers} />
-        <Stat icon={Sparkles} value={stats?.persian_movies} label={COPY.home.statPersian} />
+        <Stat icon={MapPin} value={stats?.persian_movies} label={COPY.home.statPersian} />
       </section>
 
       <section className="how-section">

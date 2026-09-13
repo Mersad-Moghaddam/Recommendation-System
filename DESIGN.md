@@ -70,6 +70,8 @@ Containers are broad and cinematic, not a nested-card dashboard. Cards are reser
 
 ## Components
 
+Phosphor Duotone is the canonical interface icon family. Icons follow the runtime `--icon-xs` through `--icon-lg` scale; controls own icon geometry by role so text size never accidentally shrinks or enlarges their symbols. Directional arrows continue to follow the RTL reading flow.
+
 - App masthead: sticky, translucent only where contrast remains reliable, safe-area aware.
 - Mobile dock: maximum five destinations, icon plus visible label, current route clearly selected.
 - Hero: route-specific title and one clear primary action; compact variant for operating screens.

@@ -7,6 +7,7 @@ import { COPY } from '../constants/copy'
 import { faNumber, genreFa } from '../utils'
 
 const EMPTY_ACTIVITY = { days: [], total_units: 0, active_days: 0, current_streak: 0, longest_streak: 0 }
+const MONTH_FORMATTER = new Intl.DateTimeFormat('fa-IR', { month: 'short' })
 
 export default function Tracker({ user, navigate, onDetails, showError }) {
   const [entries, setEntries] = useState([])
@@ -14,6 +15,8 @@ export default function Tracker({ user, navigate, onDetails, showError }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [editing, setEditing] = useState(null)
+  const [pendingRemoval, setPendingRemoval] = useState(null)
+  const [removeBusy, setRemoveBusy] = useState(false)
   const [notice, setNotice] = useState('')
 
   useEffect(() => {
@@ -45,13 +48,18 @@ export default function Tracker({ user, navigate, onDetails, showError }) {
       showError(requestError)
     }
   }
-  const removeEntry = async (entry) => {
+  const removeEntry = async () => {
+    if (!pendingRemoval) return
+    setRemoveBusy(true)
     try {
-      await api.removeLibrary(entry.movie_id)
-      setEntries((current) => current.filter((item) => item.movie_id !== entry.movie_id))
+      await api.removeLibrary(pendingRemoval.movie_id)
+      setEntries((current) => current.filter((item) => item.movie_id !== pendingRemoval.movie_id))
       setNotice('عنوان از دفتر تماشا حذف شد.')
+      setPendingRemoval(null)
     } catch (requestError) {
       showError(requestError)
+    } finally {
+      setRemoveBusy(false)
     }
   }
 
@@ -64,10 +72,11 @@ export default function Tracker({ user, navigate, onDetails, showError }) {
       {error ? <ErrorMessage>{error}</ErrorMessage> : null}
       <p className="sr-only" aria-live="polite">{notice}</p>
       <ActivityPanel activity={activity} />
-      <LibrarySection status="watching" title={COPY.tracker.watching} entries={groups.watching || []} empty={COPY.tracker.emptyWatching} navigate={navigate} onDetails={onDetails} onEdit={setEditing} onRemove={removeEntry} onUpdate={updateEntry} />
-      <LibrarySection status="watchlist" title={COPY.tracker.watchlist} entries={groups.watchlist || []} empty={COPY.tracker.emptyWatchlist} navigate={navigate} onDetails={onDetails} onEdit={setEditing} onRemove={removeEntry} onUpdate={updateEntry} />
-      <LibrarySection status="completed" title={COPY.tracker.completed} entries={groups.completed || []} empty={COPY.tracker.emptyCompleted} navigate={navigate} onDetails={onDetails} onEdit={setEditing} onRemove={removeEntry} onUpdate={updateEntry} />
+      <LibrarySection status="watching" title={COPY.tracker.watching} entries={groups.watching || []} empty={COPY.tracker.emptyWatching} navigate={navigate} onDetails={onDetails} onEdit={setEditing} onRemove={setPendingRemoval} onUpdate={updateEntry} />
+      <LibrarySection status="watchlist" title={COPY.tracker.watchlist} entries={groups.watchlist || []} empty={COPY.tracker.emptyWatchlist} navigate={navigate} onDetails={onDetails} onEdit={setEditing} onRemove={setPendingRemoval} onUpdate={updateEntry} />
+      <LibrarySection status="completed" title={COPY.tracker.completed} entries={groups.completed || []} empty={COPY.tracker.emptyCompleted} navigate={navigate} onDetails={onDetails} onEdit={setEditing} onRemove={setPendingRemoval} onUpdate={updateEntry} />
       {editing ? <ProgressDialog entry={editing} onClose={() => setEditing(null)} onSave={(payload) => updateEntry(editing, payload)} /> : null}
+      {pendingRemoval ? <RemovalDialog entry={pendingRemoval} busy={removeBusy} onClose={() => { if (!removeBusy) setPendingRemoval(null) }} onConfirm={removeEntry} /> : null}
     </>
   )
 }
@@ -76,14 +85,14 @@ function ActivityPanel({ activity }) {
   const months = activity.days.reduce((labels, day, index) => {
     if (index % 7 !== 0) return labels
     const date = new Date(`${day.date}T12:00:00`)
-    const month = new Intl.DateTimeFormat('fa-IR', { month: 'short' }).format(date)
+    const month = MONTH_FORMATTER.format(date)
     if (labels.at(-1)?.month !== month) labels.push({ month, week: Math.floor(index / 7) + 1 })
     return labels
   }, [])
   return (
     <section className="activity-panel" aria-labelledby="activity-title">
       <div className="activity-heading"><div><h2 id="activity-title">{COPY.tracker.activityTitle}</h2><p>{COPY.tracker.activityHint}</p></div><ActivityLegend /></div>
-      <div className="heatmap-scroll" tabIndex="0">
+      <div className="heatmap-scroll" role="region" aria-label={COPY.tracker.activityScrollLabel} tabIndex="0">
         <div className="heatmap-chart" role="img" aria-label={`${COPY.tracker.activityTitle}؛ ${faNumber(activity.total_units)} تماشا در ${faNumber(activity.active_days)} روز`}>
           <div className="heatmap-months" aria-hidden="true">{months.map((label) => <span key={`${label.week}-${label.month}`} style={{ gridColumnStart: label.week }}>{label.month}</span>)}</div>
           <div className="heatmap-weekdays" aria-hidden="true"><span>ش</span><span>د</span><span>س</span><span>چ</span><span>پ</span><span>ج</span><span>ش</span></div>
@@ -107,7 +116,7 @@ function ActivityLegend() {
 }
 
 function Stat({ value, label }) {
-  return <div><dd>{faNumber(value)}</dd><dt>{label}</dt></div>
+  return <div><dt>{label}</dt><dd>{faNumber(value)}</dd></div>
 }
 
 function LibrarySection({ status, title, entries, empty, navigate, onDetails, onEdit, onRemove, onUpdate }) {
@@ -151,8 +160,11 @@ function ProgressDialog({ entry, onClose, onSave }) {
   const submit = async (event) => {
     event.preventDefault()
     setBusy(true)
-    await onSave({ ...form, current_season: Number(form.current_season), current_episode: Number(form.current_episode), watched_episodes: Number(form.watched_episodes) })
-    setBusy(false)
+    try {
+      await onSave({ ...form, current_season: Number(form.current_season), current_episode: Number(form.current_episode), watched_episodes: Number(form.watched_episodes) })
+    } finally {
+      setBusy(false)
+    }
   }
   return (
     <Dialog title={`${COPY.tracker.progressTitle} «${entry.display_title}»`} onClose={onClose}>
@@ -165,6 +177,23 @@ function ProgressDialog({ entry, onClose, onSave }) {
         <div className="segmented" aria-label="وضعیت سریال"><button type="button" aria-pressed={form.status === 'watching'} className={form.status === 'watching' ? 'selected' : ''} onClick={() => setForm({ ...form, status: 'watching' })}>{COPY.tracker.watching}</button><button type="button" aria-pressed={form.status === 'completed'} className={form.status === 'completed' ? 'selected' : ''} onClick={() => setForm({ ...form, status: 'completed' })}>{COPY.tracker.completed}</button></div>
         <button type="submit" className="button primary large" disabled={busy}>{busy ? <SpinnerLabel>{COPY.tracker.saving}</SpinnerLabel> : COPY.tracker.saveProgress}</button>
       </form>
+    </Dialog>
+  )
+}
+
+function RemovalDialog({ entry, busy, onClose, onConfirm }) {
+  return (
+    <Dialog title={COPY.tracker.removeTitle} onClose={onClose} className="confirm-dialog">
+      <div className="confirm-copy">
+        <p>{COPY.tracker.removePrompt(entry.display_title)}</p>
+        <small>{COPY.tracker.removeHint}</small>
+      </div>
+      <div className="confirm-actions">
+        <button type="button" className="button secondary" disabled={busy} onClick={onClose}>{COPY.common.cancel}</button>
+        <button type="button" className="button danger" disabled={busy} onClick={onConfirm}>
+          {busy ? <SpinnerLabel>{COPY.tracker.removing}</SpinnerLabel> : COPY.tracker.removeConfirm}
+        </button>
+      </div>
     </Dialog>
   )
 }

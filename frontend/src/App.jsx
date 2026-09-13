@@ -82,7 +82,11 @@ export default function App() {
   const user = session.user
 
   useEffect(() => {
-    localStorage.removeItem('cinematch-session-v1')
+    try {
+      localStorage.removeItem('cinematch-session-v1')
+    } catch {
+      // Authentication is cookie-based; unavailable legacy storage must not block startup.
+    }
     document.title = COPY.app.documentTitle
     api.me()
       .then(setSession)
