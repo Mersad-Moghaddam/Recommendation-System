@@ -6,7 +6,7 @@ import { Hero, SectionTitle } from '../components/UI'
 import { COPY } from '../constants/copy'
 import { formatFaNumber } from '../utils'
 
-export default function Home({ navigate, user, onRate, onDetails, showError }) {
+export default function Home({ navigate, user, onRate, onDetails, onTrack, showError }) {
   const [stats, setStats] = useState(null)
   const [iranianMovies, setIranianMovies] = useState([])
   const [loading, setLoading] = useState(true)
@@ -44,6 +44,7 @@ export default function Home({ navigate, user, onRate, onDetails, showError }) {
 
       <section className="stats-strip" aria-label={COPY.home.statsLabel}>
         <Stat icon={Film} value={stats?.movies} label={COPY.home.statMovies} />
+        <Stat icon={Film} value={stats?.serials} label={COPY.home.statSerials} />
         <Stat icon={Database} value={stats?.ratings} label={COPY.home.statRatings} />
         <Stat icon={Users} value={stats?.users} label={COPY.home.statUsers} />
         <Stat icon={Sparkles} value={stats?.persian_movies} label={COPY.home.statPersian} />
@@ -64,7 +65,7 @@ export default function Home({ navigate, user, onRate, onDetails, showError }) {
           title={COPY.home.iranianTitle}
           action={<a className="link-button" href="/#discover" onClick={(event) => navigate('discover', event)}>{COPY.home.viewAll}<ArrowLeft size={16} aria-hidden="true" /></a>}
         />
-        <CompactMovieGrid movies={iranianMovies} loading={loading} user={user} onRate={onRate} onDetails={onDetails} />
+        <CompactMovieGrid movies={iranianMovies} loading={loading} user={user} onRate={onRate} onDetails={onDetails} onTrack={onTrack} />
       </section>
     </>
   )

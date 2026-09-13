@@ -15,7 +15,8 @@ const MovieDetails = lazy(() => import('./pages/MovieDetails'))
 const Onboarding = lazy(() => import('./pages/Onboarding'))
 const Ratings = lazy(() => import('./pages/Ratings'))
 const Recommendations = lazy(() => import('./pages/Recommendations'))
-const PROTECTED_PAGES = new Set(['concierge', 'recommendations', 'ratings', 'onboarding'])
+const Tracker = lazy(() => import('./pages/Tracker'))
+const PROTECTED_PAGES = new Set(['concierge', 'recommendations', 'ratings', 'tracker', 'onboarding'])
 const PAGE_TITLES = {
   auth: 'ورود و ثبت‌نام',
   concierge: 'پیشنهاد هوشمند',
@@ -25,6 +26,7 @@ const PAGE_TITLES = {
   onboarding: 'شروع شخصی‌سازی',
   ratings: 'امتیازهای من',
   recommendations: 'پیشنهادهای من',
+  tracker: 'دفتر تماشای من',
 }
 
 function readRoute() {
@@ -45,8 +47,8 @@ function isModifiedClick(event) {
   return event && (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
 }
 
-function AppPage({ route, user, detailSeed, navigate, changeRoute, changeRawRoute, replaceParams, openDetails, openRate, showError, authenticate }) {
-  const common = { user, onRate: openRate, onDetails: openDetails }
+function AppPage({ route, user, detailSeed, navigate, changeRoute, changeRawRoute, replaceParams, openDetails, openRate, saveToLibrary, showError, authenticate }) {
+  const common = { user, onRate: openRate, onDetails: openDetails, onTrack: saveToLibrary }
   if (route.page === 'detail' && route.params.get('id')) {
     const from = route.params.get('from') || 'home'
     return <MovieDetails {...common} id={route.params.get('id')} seed={detailSeed} goBack={() => changeRawRoute(from, true)} />
@@ -64,6 +66,7 @@ function AppPage({ route, user, detailSeed, navigate, changeRoute, changeRawRout
   if (route.page === 'discover') return <Discover key={route.params.toString()} {...common} params={route.params} replaceParams={replaceParams} />
   if (route.page === 'recommendations') return <Recommendations {...common} />
   if (route.page === 'ratings') return <Ratings navigate={navigate} onDetails={openDetails} />
+  if (route.page === 'tracker') return <Tracker {...common} navigate={navigate} showError={showError} />
   return <Home {...common} navigate={navigate} showError={showError} />
 }
 
@@ -202,6 +205,18 @@ export default function App() {
       setRatingBusy(false)
     }
   }
+  const saveToLibrary = useCallback(async (movie, status = 'watchlist') => {
+    if (!user) {
+      changeRoute('auth', { next: route.page || 'discover' })
+      return
+    }
+    try {
+      await api.saveLibrary(movieId(movie), { status, watched_episodes: status === 'completed' ? 1 : 0 })
+      setToast({ message: status === 'completed' ? COPY.app.watchedSaved : COPY.app.watchlistSaved, type: 'success' })
+    } catch (error) {
+      showError(error)
+    }
+  }, [changeRoute, route.page, showError, user])
 
   if (sessionLoading) return <PageLoading />
   const activePage = route.page === 'detail' ? (route.params.get('from') || 'home').split('?')[0] : route.page
@@ -209,7 +224,7 @@ export default function App() {
     <Layout page={activePage} navigate={navigate} user={user} logout={logout}>
       <Suspense fallback={<PageLoading />}>
         <PageTransition key={`${route.page}-${route.params.get('id') || ''}`}>
-          <AppPage route={route} user={user} detailSeed={detailSeed} navigate={navigate} changeRoute={changeRoute} changeRawRoute={changeRawRoute} replaceParams={replaceParams} openDetails={openDetails} openRate={openRate} showError={showError} authenticate={authenticate} />
+          <AppPage route={route} user={user} detailSeed={detailSeed} navigate={navigate} changeRoute={changeRoute} changeRawRoute={changeRawRoute} replaceParams={replaceParams} openDetails={openDetails} openRate={openRate} saveToLibrary={saveToLibrary} showError={showError} authenticate={authenticate} />
           <SiteFooter navigate={navigate} />
         </PageTransition>
       </Suspense>

@@ -5,6 +5,7 @@ import Concierge from '../pages/Concierge'
 import Discover from '../pages/Discover'
 import MovieDetails from '../pages/MovieDetails'
 import Onboarding from '../pages/Onboarding'
+import Tracker from '../pages/Tracker'
 import { api } from '../api'
 
 vi.mock('../api', () => ({
@@ -16,6 +17,10 @@ vi.mock('../api', () => ({
     onboarding: vi.fn(),
     rateBulk: vi.fn(),
     skipOnboarding: vi.fn(),
+    library: vi.fn(),
+    activity: vi.fn(),
+    saveLibrary: vi.fn(),
+    removeLibrary: vi.fn(),
   },
 }))
 
@@ -136,5 +141,50 @@ describe('product UI contracts', () => {
 
     expect(screen.queryByText('Wrong Movie')).not.toBeInTheDocument()
     expect(await screen.findByRole('alert')).toHaveTextContent('جزئیات پیدا نشد')
+  })
+
+  it('renders a GitHub-style viewing grid and series remainder', async () => {
+    api.library.mockResolvedValue([{
+      entry_id: 1, movie_id: 20, id: 20, display_title: 'Dark', title: 'Dark (2017)',
+      genres: ['Drama'], media_type: 'serial', status: 'watching', current_season: 2,
+      current_episode: 3, watched_episodes: 13, total_episodes: 26,
+      remaining_episodes: 13, progress_percent: 50,
+    }])
+    api.activity.mockResolvedValue({
+      days: [
+        { date: '2026-09-11', count: 0, level: 0 },
+        { date: '2026-09-12', count: 2, level: 2 },
+        { date: '2026-09-13', count: 5, level: 4 },
+      ],
+      total_units: 7, active_days: 2, current_streak: 2, longest_streak: 2,
+    })
+    render(<Tracker user={{ username: 'viewer' }} navigate={() => {}} onDetails={() => {}} showError={() => {}} />)
+    expect(await screen.findByText('Dark')).toBeVisible()
+    expect(screen.getByText(/۱۳ قسمت باقی مانده/)).toBeVisible()
+    expect(screen.getByRole('img', { name: /فعالیت تماشای یک سال اخیر/ })).toBeVisible()
+    expect(document.querySelectorAll('.heatmap .activity-cell')).toHaveLength(3)
+    expect(document.querySelector('.heatmap .level-4')).toBeInTheDocument()
+  })
+
+  it('submits season, episode and total watched episode progress', async () => {
+    const entry = {
+      entry_id: 1, movie_id: 20, id: 20, display_title: 'Dark', title: 'Dark (2017)',
+      genres: ['Drama'], media_type: 'serial', status: 'watching', current_season: 1,
+      current_episode: 2, watched_episodes: 2, total_seasons: 3, total_episodes: 26,
+      remaining_episodes: 24, progress_percent: 8,
+    }
+    api.library.mockResolvedValue([entry])
+    api.activity.mockResolvedValue({ days: [], total_units: 2, active_days: 1, current_streak: 1, longest_streak: 1 })
+    api.saveLibrary.mockResolvedValue({ ...entry, current_season: 2, current_episode: 4, watched_episodes: 12 })
+    render(<Tracker user={{ username: 'viewer' }} navigate={() => {}} onDetails={() => {}} showError={() => {}} />)
+    fireEvent.click(await screen.findByRole('button', { name: 'ثبت پیشرفت' }))
+    const fields = screen.getAllByRole('spinbutton')
+    fireEvent.change(fields[0], { target: { value: '2' } })
+    fireEvent.change(fields[1], { target: { value: '4' } })
+    fireEvent.change(fields[2], { target: { value: '12' } })
+    fireEvent.click(screen.getByRole('button', { name: 'ذخیرهٔ پیشرفت' }))
+    await waitFor(() => expect(api.saveLibrary).toHaveBeenCalledWith(20, expect.objectContaining({
+      status: 'watching', current_season: 2, current_episode: 4, watched_episodes: 12,
+    })))
   })
 })

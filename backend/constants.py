@@ -2,11 +2,12 @@
 
 API_META = {
     "title": "رابط برنامه‌نویسی سینمچ",
-    "description": "سامانهٔ پیشنهاد فیلم توضیح‌پذیر برای پروژهٔ دانشگاهی",
+    "description": "سامانهٔ پیشنهاد و پیگیری فیلم و سریال برای پروژهٔ دانشگاهی",
 }
 
 DEV_ORIGIN_PATTERN = r"^http://(127\.0\.0\.1|localhost):\d+$"
 PERSIAN_MOVIE_ID_START = 1_000_000
+SERIAL_ID_START = 2_000_000_000
 
 API_TAGS = {
     "system": "سامانه",
@@ -14,6 +15,7 @@ API_TAGS = {
     "movies": "فیلم‌ها",
     "ratings": "امتیازها",
     "recommendations": "پیشنهادها",
+    "tracker": "دفتر تماشا",
 }
 
 TEXT_SEPARATORS = {"list": "، "}
@@ -38,6 +40,8 @@ ERROR_MESSAGES = {
     "expired_token": "زمان اعتبار توکن ورود به پایان رسیده است.",
     "invalid_method": "روش پیشنهاد معتبر نیست؛ یکی از روش‌های ترکیبی، مشارکتی، محتوایی یا محبوبیت را انتخاب کنید.",
     "invalid_mode": "حالت پیشنهاد معتبر نیست.",
+    "invalid_media_type": "نوع محتوا باید فیلم یا سریال باشد.",
+    "invalid_library_progress": "پیشرفت ثبت‌شده با اطلاعات این عنوان سازگار نیست.",
     "invalid_origin_header": "منبع این درخواست مجاز نیست.",
     "model_unavailable": "مدل پیشنهاد آماده نیست؛ ابتدا scripts/train_models.py را اجرا کنید.",
     "movielens_missing": "فایل‌های MovieLens پیدا نشدند؛ ابتدا اسکریپت دریافت داده را اجرا کنید.",

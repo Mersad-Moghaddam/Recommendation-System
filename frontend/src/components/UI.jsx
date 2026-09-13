@@ -50,8 +50,12 @@ export function Dialog({ title, children, onClose, className = '' }) {
   const dialogRef = useRef(null)
   useEffect(() => {
     const dialog = dialogRef.current
-    dialog?.showModal()
-    return () => dialog?.close()
+    if (typeof dialog?.showModal === 'function') dialog.showModal()
+    else dialog?.setAttribute('open', '')
+    return () => {
+      if (typeof dialog?.close === 'function') dialog.close()
+      else dialog?.removeAttribute('open')
+    }
   }, [])
   return createPortal(
     <dialog

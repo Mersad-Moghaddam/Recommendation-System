@@ -1,9 +1,9 @@
-import { Brain as BrainCircuit, Compass, Heart, House as Home, SignIn as LogIn, Sparkle as Sparkles, Star, UserCircle as UserRound } from '@phosphor-icons/react'
+import { Brain as BrainCircuit, Compass, Heart, House as Home, SignIn as LogIn, SignOut, Sparkle as Sparkles, SquaresFour, UserCircle as UserRound } from '@phosphor-icons/react'
 import { COPY, NAV_ITEMS } from '../constants/copy'
 import PwaStatus from './PwaStatus'
 import ThemeToggle from './ThemeToggle'
 
-const ICONS = { home: Home, concierge: BrainCircuit, discover: Compass, recommendations: Heart, ratings: Star }
+const ICONS = { home: Home, concierge: BrainCircuit, discover: Compass, recommendations: Heart, tracker: SquaresFour }
 const PAGE_LABELS = Object.fromEntries(NAV_ITEMS.map((item) => [item.id, item.label]))
 const FOOTER_ITEMS = NAV_ITEMS.filter((item) => !item.auth)
 
@@ -51,7 +51,7 @@ export default function Layout({ children, page, navigate, user, logout }) {
           <PwaStatus />
           <ThemeToggle />
           {user ? (
-            <button className="account-action" type="button" onClick={logout} aria-label={`${COPY.layout.logout}، ${user.username}`}><UserRound size={19} aria-hidden="true" /><span>{user.username}</span></button>
+            <><a className="account-action" href="/#tracker" onClick={(event) => navigate('tracker', event)} aria-label={`${COPY.layout.account}، ${user.username}`}><UserRound size={19} aria-hidden="true" /><span>{user.username}</span></a><button className="logout-action" type="button" onClick={logout} aria-label={COPY.layout.logout}><SignOut size={18} aria-hidden="true" /></button></>
           ) : (
             <a className="account-action" href="/#auth" onClick={(event) => navigate('auth', event)}><LogIn size={19} aria-hidden="true" /><span>{COPY.layout.login}</span></a>
           )}

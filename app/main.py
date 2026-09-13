@@ -14,9 +14,12 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from backend.constants import API_META, API_TAGS, DEV_ORIGIN_PATTERN, ERROR_MESSAGES, PERSIAN_MOVIE_ID_START
+from backend.constants import API_META, API_TAGS, DEV_ORIGIN_PATTERN, ERROR_MESSAGES, PERSIAN_MOVIE_ID_START, SERIAL_ID_START
 from backend.schemas import (
     Credentials,
+    ActivitySummaryOut,
+    LibraryEntryIn,
+    LibraryEntryOut,
     MovieDetailOut,
     MovieOut,
     QuizIn,
@@ -30,7 +33,7 @@ from backend.schemas import (
     StatsOut,
 )
 from backend.security import create_token, read_token
-from backend.services import MovieService, RatingService, RecommendationService, UserService
+from backend.services import LibraryService, MovieService, RatingService, RecommendationService, UserService
 from config import settings, validate_settings
 from database.database import SessionLocal, create_tables, get_db
 from database.models import Movie, Rating, User
@@ -143,10 +146,13 @@ def health():
 @api.get("/stats", response_model=StatsOut, tags=[API_TAGS["system"]])
 def stats(db: Session = Depends(get_db)):
     return {
-        "movies": db.scalar(select(func.count(Movie.id))),
+        "movies": db.scalar(select(func.count(Movie.id)).where(Movie.media_type == "movie")),
+        "serials": db.scalar(select(func.count(Movie.id)).where(Movie.media_type == "serial")),
         "ratings": db.scalar(select(func.count(Rating.id))),
         "users": db.scalar(select(func.count(User.id)).where(User.is_dataset_user.is_(False))),
-        "persian_movies": db.scalar(select(func.count(Movie.id)).where(Movie.id >= PERSIAN_MOVIE_ID_START)),
+        "persian_movies": db.scalar(select(func.count(Movie.id)).where(
+            Movie.id >= PERSIAN_MOVIE_ID_START, Movie.id < SERIAL_ID_START
+        )),
     }
 
 
@@ -211,10 +217,11 @@ def movies(
     limit: int = Query(24, ge=1, le=100),
     persian_only: bool = False,
     genre: str = "",
+    media_type: str = "movie",
     db: Session = Depends(get_db),
 ):
     try:
-        return MovieService.list(db, q, skip, limit, persian_only, genre)
+        return MovieService.list(db, q, skip, limit, persian_only, genre, media_type)
     except ValueError as exc:
         raise HTTPException(422, str(exc)) from exc
 
@@ -304,12 +311,13 @@ def onboarding_skip(user: User = Depends(current_user), db: Session = Depends(ge
 @api.get("/recommendations/me", response_model=list[RecommendationOut], tags=[API_TAGS["recommendations"]])
 def recommendations(
     mode: str = "balanced",
+    media_type: str = Query("movie", pattern="^(movie|serial)$"),
     n: int = Query(10, ge=1, le=50),
     user: User = Depends(current_user),
     db: Session = Depends(get_db),
 ):
     try:
-        return RecommendationService.recommend(db, user.id, "hybrid", n, mode)
+        return RecommendationService.recommend(db, user.id, "hybrid", n, mode, media_type)
     except ValueError as exc:
         raise HTTPException(422, str(exc)) from exc
 
@@ -331,6 +339,7 @@ def quiz_recommendations(body: QuizIn, user: User = Depends(current_user), db: S
             discovery=body.discovery,
             n=body.n,
             origin=body.origin,
+            media_type=body.media_type,
         )
     except ValueError as exc:
         raise HTTPException(422, str(exc)) from exc
@@ -342,6 +351,63 @@ def similar(movie_id: int, n: int = Query(8, ge=1, le=30), db: Session = Depends
         return RecommendationService.similar(db, movie_id, n)
     except KeyError as exc:
         raise HTTPException(404, str(exc)) from exc
+
+
+@api.get("/users/me/library", response_model=list[LibraryEntryOut], tags=[API_TAGS["tracker"]])
+def my_library(
+    status: str = "",
+    media_type: str = "",
+    user: User = Depends(current_user),
+    db: Session = Depends(get_db),
+):
+    try:
+        return LibraryService.list(db, user.id, status, media_type)
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
+
+
+@api.put(
+    "/users/me/library/{movie_id}",
+    response_model=LibraryEntryOut,
+    tags=[API_TAGS["tracker"]],
+    dependencies=[Depends(validate_origin)],
+)
+def save_library_entry(
+    movie_id: int,
+    body: LibraryEntryIn,
+    user: User = Depends(current_user),
+    db: Session = Depends(get_db),
+):
+    try:
+        return LibraryService.upsert(db, user.id, movie_id, **body.model_dump())
+    except KeyError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    except ValueError as exc:
+        db.rollback()
+        raise HTTPException(422, str(exc)) from exc
+
+
+@api.delete(
+    "/users/me/library/{movie_id}",
+    status_code=204,
+    tags=[API_TAGS["tracker"]],
+    dependencies=[Depends(validate_origin)],
+)
+def remove_library_entry(
+    movie_id: int,
+    user: User = Depends(current_user),
+    db: Session = Depends(get_db),
+):
+    LibraryService.delete(db, user.id, movie_id)
+
+
+@api.get("/users/me/activity", response_model=ActivitySummaryOut, tags=[API_TAGS["tracker"]])
+def viewing_activity(
+    days: int = Query(371, ge=7, le=371),
+    user: User = Depends(current_user),
+    db: Session = Depends(get_db),
+):
+    return LibraryService.activity(db, user.id, days)
 
 
 app.include_router(api)

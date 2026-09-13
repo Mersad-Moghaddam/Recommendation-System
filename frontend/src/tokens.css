@@ -34,6 +34,11 @@
   --color-focus: var(--primitive-lapis-500);
   --color-success: var(--primitive-success-600);
   --color-danger: var(--primitive-danger-600);
+  --activity-0: color-mix(in srgb, var(--color-ink) 7%, var(--color-surface));
+  --activity-1: #b7dbc9;
+  --activity-2: #72b99a;
+  --activity-3: #38866c;
+  --activity-4: #175944;
   --color-backdrop: rgba(7, 8, 17, 0.76);
   --font-display: 'Estedad', 'Vazirmatn', Tahoma, sans-serif;
   --font-body: 'Vazirmatn', Tahoma, sans-serif;
@@ -90,6 +95,11 @@
   --color-focus: #91a5ff;
   --color-success: #6fd1ad;
   --color-danger: #ff7b87;
+  --activity-0: #242633;
+  --activity-1: #173f34;
+  --activity-2: #23604d;
+  --activity-3: #368a6e;
+  --activity-4: #61c59f;
   --color-backdrop: rgba(0, 0, 0, 0.82);
   --shadow-raised: 0 22px 60px rgba(0, 0, 0, 0.34);
   --shadow-floating: 0 16px 42px rgba(0, 0, 0, 0.48);

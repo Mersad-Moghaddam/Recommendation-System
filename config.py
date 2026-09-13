@@ -2,6 +2,7 @@
 from dataclasses import dataclass
 from pathlib import Path
 import os
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 ROOT = Path(__file__).resolve().parent
 DEFAULT_SECRET_KEY = "change-me-for-any-shared-demo"
@@ -22,6 +23,7 @@ class Settings:
     session_cookie: str = os.getenv("SESSION_COOKIE", "cinematch_session")
     session_seconds: int = int(os.getenv("SESSION_SECONDS", 60 * 60 * 24))
     tmdb_read_token: str = os.getenv("TMDB_READ_TOKEN", "")
+    timezone: str = os.getenv("APP_TIMEZONE", "Asia/Tehran")
     default_limit: int = 10
     hybrid_alpha: float = 0.65
     cold_start_ratings: int = 3
@@ -35,3 +37,7 @@ def validate_settings(value: Settings = settings) -> None:
         value.secret_key == DEFAULT_SECRET_KEY or len(value.secret_key) < 32
     ):
         raise RuntimeError("SECRET_KEY must be a unique value of at least 32 characters in production")
+    try:
+        ZoneInfo(value.timezone)
+    except ZoneInfoNotFoundError as exc:
+        raise RuntimeError(f"APP_TIMEZONE is not a valid IANA timezone: {value.timezone}") from exc

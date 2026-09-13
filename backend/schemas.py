@@ -5,6 +5,8 @@ MoodCode = Literal[
     "feel_good", "need_laugh", "low_energy", "thrill", "thoughtful", "emotional",
     "cozy", "romantic", "inspired", "nostalgic", "escape", "surprise",
 ]
+MediaType = Literal["movie", "serial"]
+LibraryStatus = Literal["watchlist", "watching", "completed"]
 
 class Credentials(BaseModel):
     username: str = Field(min_length=3, max_length=50)
@@ -36,6 +38,9 @@ class MovieOut(BaseModel):
     overview_short: str | None = None
     overview_locale: Literal["fa", "en"] | None = None
     overview_source: str = "catalog"
+    media_type: MediaType = "movie"
+    total_seasons: int | None = None
+    total_episodes: int | None = None
 
 class MovieDetailOut(MovieOut):
     overview: str
@@ -76,6 +81,7 @@ class RatingBulkOut(BaseModel):
 
 class StatsOut(BaseModel):
     movies: int
+    serials: int
     ratings: int
     users: int
     persian_movies: int
@@ -93,6 +99,7 @@ class QuizIn(BaseModel):
     origin: Literal["Any", "Iranian", "International"] = "Any"
     discovery: int = Field(default=50, ge=0, le=100)
     n: int = Field(default=12, ge=1, le=30)
+    media_type: MediaType = "movie"
 
     @model_validator(mode="after")
     def validate_moods(self):
@@ -101,3 +108,38 @@ class QuizIn(BaseModel):
         if "surprise" in self.moods and len(self.moods) > 1:
             raise ValueError("گزینهٔ غافلگیرم کن باید به‌تنهایی انتخاب شود.")
         return self
+
+
+class LibraryEntryIn(BaseModel):
+    status: LibraryStatus
+    current_season: int | None = Field(default=None, ge=1)
+    current_episode: int | None = Field(default=None, ge=1)
+    watched_episodes: int = Field(default=0, ge=0)
+
+
+class LibraryEntryOut(MovieOut):
+    entry_id: int
+    movie_id: int
+    status: LibraryStatus
+    current_season: int | None
+    current_episode: int | None
+    watched_episodes: int
+    remaining_episodes: int | None
+    progress_percent: int
+    started_at: str | None
+    completed_at: str | None
+    updated_at: str
+
+
+class ActivityDayOut(BaseModel):
+    date: str
+    count: int
+    level: int
+
+
+class ActivitySummaryOut(BaseModel):
+    days: list[ActivityDayOut]
+    total_units: int
+    active_days: int
+    current_streak: int
+    longest_streak: int

@@ -2,7 +2,7 @@ import MovieCard, { CompactMovieCard } from './MovieCard'
 import { Empty, Loading } from './UI'
 import { movieId } from '../utils'
 
-function Grid({ movies, loading, onRate, onDetails, emptyTitle, CardComponent, compact = false }) {
+function Grid({ movies, loading, onRate, onDetails, onTrack, emptyTitle, CardComponent, compact = false }) {
   if (loading) return <Loading compact={compact} />
   if (!movies?.length) return <Empty title={emptyTitle} />
   return (
@@ -14,6 +14,7 @@ function Grid({ movies, loading, onRate, onDetails, emptyTitle, CardComponent, c
           index={index}
           onRate={onRate}
           onDetails={onDetails}
+          onTrack={onTrack}
         />
       ))}
     </div>

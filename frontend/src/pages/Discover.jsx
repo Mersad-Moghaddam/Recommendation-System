@@ -12,11 +12,12 @@ function filtersFromParams(params) {
     query: params.get('q') || '',
     iranian: params.get('iranian') === '1',
     genre: params.get('genre') || '',
+    mediaType: params.get('type') === 'serial' ? 'serial' : 'movie',
     page: Number.isInteger(parsedPage) && parsedPage >= 0 ? parsedPage : 0,
   }
 }
 
-export default function Discover({ user, onRate, onDetails, params, replaceParams }) {
+export default function Discover({ user, onRate, onDetails, onTrack, params, replaceParams }) {
   const initialFilters = filtersFromParams(params)
   const [draft, setDraft] = useState(initialFilters.query)
   const [filters, setFilters] = useState(initialFilters)
@@ -26,12 +27,12 @@ export default function Discover({ user, onRate, onDetails, params, replaceParam
 
   useEffect(() => {
     const controller = new AbortController()
-    api.movies({ query: filters.query, iranian: filters.iranian, genre: filters.genre, skip: filters.page * 24, signal: controller.signal })
+    api.movies({ query: filters.query, iranian: filters.iranian, genre: filters.genre, mediaType: filters.mediaType, skip: filters.page * 24, signal: controller.signal })
       .then(setMovies)
       .catch((requestError) => requestError.name !== 'AbortError' && setError(requestError.message))
       .finally(() => !controller.signal.aborted && setLoading(false))
     return () => controller.abort()
-  }, [filters.genre, filters.iranian, filters.page, filters.query])
+  }, [filters.genre, filters.iranian, filters.mediaType, filters.page, filters.query])
 
   const updateFilters = (next) => {
     setLoading(true)
@@ -44,6 +45,7 @@ export default function Discover({ user, onRate, onDetails, params, replaceParam
       genre: updated.genre || undefined,
       iranian: updated.iranian ? '1' : undefined,
       page: updated.page ? String(updated.page) : undefined,
+      type: updated.mediaType === 'serial' ? 'serial' : undefined,
     })
   }
   const search = (event) => { event.preventDefault(); updateFilters({ query: draft.trim(), page: 0 }) }
@@ -52,6 +54,10 @@ export default function Discover({ user, onRate, onDetails, params, replaceParam
   return (
     <>
       <Hero className="compact-hero archive-hero" eyebrow={COPY.discover.eyebrow} title={<>{COPY.discover.titleStart}<br /><em>{COPY.discover.titleAccent}</em></>} description={COPY.discover.description} />
+      <div className="media-switch segmented" aria-label="نوع محتوا">
+        <button type="button" className={filters.mediaType === 'movie' ? 'selected' : ''} aria-pressed={filters.mediaType === 'movie'} onClick={() => updateFilters({ mediaType: 'movie', page: 0 })}>{COPY.discover.moviesTab}</button>
+        <button type="button" className={filters.mediaType === 'serial' ? 'selected' : ''} aria-pressed={filters.mediaType === 'serial'} onClick={() => updateFilters({ mediaType: 'serial', iranian: false, page: 0 })}>{COPY.discover.serialsTab}</button>
+      </div>
       <section className="search-panel">
         <form className="search-box" onSubmit={search}>
           <Search size={20} aria-hidden="true" />
@@ -64,7 +70,7 @@ export default function Discover({ user, onRate, onDetails, params, replaceParam
             <option value="">{COPY.discover.allGenres}</option>
             {GENRE_OPTIONS.map(([key, label]) => <option value={key} key={key}>{label}</option>)}
           </select>
-          <label className="switch"><input type="checkbox" checked={filters.iranian} onChange={(event) => updateFilters({ iranian: event.target.checked, page: 0 })} /><span aria-hidden="true" />{COPY.discover.iranianOnly}</label>
+          {filters.mediaType === 'movie' ? <label className="switch"><input type="checkbox" checked={filters.iranian} onChange={(event) => updateFilters({ iranian: event.target.checked, page: 0 })} /><span aria-hidden="true" />{COPY.discover.iranianOnly}</label> : null}
           {filters.query || filters.genre || filters.iranian ? <button type="button" className="clear-filter" onClick={clearFilters}>{COPY.discover.clear}</button> : null}
         </div>
       </section>
@@ -74,7 +80,7 @@ export default function Discover({ user, onRate, onDetails, params, replaceParam
         title={filters.query ? COPY.discover.result(filters.query) : COPY.discover.browse}
         action={<span className="page-label">{COPY.discover.page(faNumber(filters.page + 1))}</span>}
       />
-      <MovieGrid movies={movies} loading={loading} user={user} onRate={onRate} onDetails={onDetails} />
+      <MovieGrid movies={movies} loading={loading} user={user} onRate={onRate} onDetails={onDetails} onTrack={onTrack} />
       {!loading && movies.length > 0 ? (
         <div className="pagination">
           <button type="button" disabled={filters.page === 0} onClick={() => updateFilters({ page: filters.page - 1 })}><ChevronRight aria-hidden="true" />{COPY.discover.previous}</button>

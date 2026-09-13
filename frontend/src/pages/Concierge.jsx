@@ -6,7 +6,7 @@ import { ErrorMessage, Hero, SectionTitle, SpinnerLabel } from '../components/UI
 import { COPY, ERA_OPTIONS, GENRE_OPTIONS, MOOD_OPTIONS, ORIGIN_OPTIONS } from '../constants/copy'
 import { faNumber } from '../utils'
 
-const INITIAL_FORM = { moods: ['feel_good'], genres: [], era: 'Any era', origin: 'Any', discovery: 55 }
+const INITIAL_FORM = { moods: ['feel_good'], genres: [], era: 'Any era', origin: 'Any', discovery: 55, media_type: 'movie' }
 const MOOD_ICONS = {
   feel_good: Sun,
   need_laugh: Smiley,
@@ -26,7 +26,7 @@ function optionLabel(options, value) {
   return options.find(([optionValue]) => optionValue === value)?.[1] || value
 }
 
-export default function Concierge({ user, onRate, onDetails }) {
+export default function Concierge({ user, onRate, onDetails, onTrack }) {
   const [form, setForm] = useState(INITIAL_FORM)
   const [movies, setMovies] = useState([])
   const [loading, setLoading] = useState(false)
@@ -82,6 +82,10 @@ export default function Concierge({ user, onRate, onDetails }) {
         title={<>{COPY.concierge.titleStart}<br /><em>{COPY.concierge.titleAccent}</em></>}
         description={COPY.concierge.description}
       />
+      <div className="media-switch segmented" aria-label={COPY.concierge.mediaType}>
+        <button type="button" aria-pressed={form.media_type === 'movie'} className={form.media_type === 'movie' ? 'selected' : ''} onClick={() => setForm({ ...form, media_type: 'movie' })}>{COPY.concierge.movie}</button>
+        <button type="button" aria-pressed={form.media_type === 'serial'} className={form.media_type === 'serial' ? 'selected' : ''} onClick={() => setForm({ ...form, media_type: 'serial', origin: 'Any' })}>{COPY.concierge.serial}</button>
+      </div>
       <div className="quiz-progress"><span><i /></span><b>{COPY.concierge.progress}</b></div>
       <form className="quiz-card" onSubmit={submit}>
         <div className="quiz-fields">
@@ -129,6 +133,7 @@ export default function Concierge({ user, onRate, onDetails }) {
           <div className="summary-heading"><span><Sparkles size={22} weight="fill" aria-hidden="true" /></span><div><h2>{COPY.concierge.summaryTitle}</h2><p>{COPY.concierge.summaryHint}</p></div></div>
           <dl>
             <SummaryRow label={COPY.concierge.summaryMood} value={form.moods.map((mood) => optionLabel(MOOD_OPTIONS, mood)).join(' + ')} />
+            <SummaryRow label={COPY.concierge.summaryMedia} value={form.media_type === 'serial' ? COPY.concierge.serial : COPY.concierge.movie} />
             <SummaryRow label={COPY.concierge.summaryGenres} value={form.genres.length ? form.genres.map((genre) => optionLabel(GENRE_OPTIONS, genre)).join('، ') : COPY.concierge.noGenres} />
             <SummaryRow label={COPY.concierge.summaryOrigin} value={optionLabel(ORIGIN_OPTIONS, form.origin)} />
             <SummaryRow label={COPY.concierge.summaryEra} value={optionLabel(ERA_OPTIONS, form.era)} />
@@ -146,8 +151,8 @@ export default function Concierge({ user, onRate, onDetails }) {
       </form>
       {loading || movies.length > 0 ? (
         <section id="quiz-results" className="results-section">
-          <SectionTitle eyebrow={COPY.concierge.resultEyebrow} title={COPY.concierge.resultTitle} />
-          <MovieGrid movies={movies} loading={loading} user={user} onRate={onRate} onDetails={onDetails} />
+          <SectionTitle eyebrow={COPY.concierge.resultEyebrow} title={form.media_type === 'serial' ? COPY.concierge.resultSerialTitle : COPY.concierge.resultMovieTitle} />
+          <MovieGrid movies={movies} loading={loading} user={user} onRate={onRate} onDetails={onDetails} onTrack={onTrack} />
         </section>
       ) : null}
     </>

@@ -17,7 +17,7 @@ const movies = Array.from({ length: 12 }, (_, index) => ({
 
 test.beforeEach(async ({ page }) => {
   await page.route('**/api/auth/me', (route) => route.fulfill({ json: { user: null, onboarding_required: false } }))
-  await page.route('**/api/stats', (route) => route.fulfill({ json: { movies: 87903, ratings: 100839, users: 0, persian_movies: 30 } }))
+  await page.route('**/api/stats', (route) => route.fulfill({ json: { movies: 87903, serials: 9200, ratings: 100839, users: 0, persian_movies: 30 } }))
   await page.route('**/api/movies?**', (route) => route.fulfill({ json: movies.slice(0, 6) }))
 })
 
@@ -109,4 +109,32 @@ test('authentication validation is inline, announced, and focuses the first erro
   await expect(page.getByLabel('نام کاربری')).toHaveAttribute('aria-invalid', 'true')
   await expect(page.getByText('نام کاربری را وارد کنید.')).toBeVisible()
   await expect(page.getByText('گذرواژه را وارد کنید.')).toBeVisible()
+})
+
+test('watch tracker keeps the yearly graph and series controls usable', async ({ page }) => {
+  const activityStart = new Date('2025-09-08T12:00:00Z')
+  const activityDays = Array.from({ length: 371 }, (_, index) => ({
+    date: new Date(activityStart.getTime() + index * 86_400_000).toISOString().slice(0, 10),
+    count: index % 6,
+    level: Math.min(index % 6, 4),
+  }))
+  await page.unroute('**/api/auth/me')
+  await page.route('**/api/auth/me', (route) => route.fulfill({ json: { user: { id: 8, username: 'viewer' }, onboarding_required: false } }))
+  await page.route('**/api/users/me/library?**', (route) => route.fulfill({ json: [{
+    entry_id: 1, movie_id: 80, id: 80, title: 'Dark (2017)', display_title: 'Dark', year: 2017,
+    genres: ['Drama'], media_type: 'serial', total_seasons: 3, total_episodes: 26,
+    status: 'watching', current_season: 2, current_episode: 3, watched_episodes: 13,
+    remaining_episodes: 13, progress_percent: 50, updated_at: '2026-09-13T10:00:00',
+  }] }))
+  await page.route('**/api/users/me/activity?**', (route) => route.fulfill({ json: {
+    days: activityDays,
+    total_units: 190, active_days: 112, current_streak: 4, longest_streak: 11,
+  } }))
+  await page.goto('/#tracker')
+  await expect(page.getByRole('heading', { name: 'فعالیت تماشای یک سال اخیر' })).toBeVisible()
+  await expect(page.getByText('۱۳ قسمت باقی مانده')).toBeVisible()
+  await page.getByRole('button', { name: 'ثبت پیشرفت' }).click()
+  await expect(page.getByRole('dialog')).toBeVisible()
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
+  expect(overflow).toBeLessThanOrEqual(1)
 })

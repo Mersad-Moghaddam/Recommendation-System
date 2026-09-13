@@ -5,8 +5,9 @@ import MovieGrid from '../components/MovieGrid'
 import { ErrorMessage, Hero, SectionTitle } from '../components/UI'
 import { COPY, MODE_OPTIONS } from '../constants/copy'
 
-export default function Recommendations({ user, onRate, onDetails }) {
+export default function Recommendations({ user, onRate, onDetails, onTrack }) {
   const [mode, setMode] = useState('balanced')
+  const [mediaType, setMediaType] = useState('movie')
   const [movies, setMovies] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -14,12 +15,12 @@ export default function Recommendations({ user, onRate, onDetails }) {
 
   useEffect(() => {
     let active = true
-    api.recommendations(mode)
+    api.recommendations(mode, mediaType)
       .then((items) => active && setMovies(items))
       .catch((requestError) => active && setError(requestError.message))
       .finally(() => active && setLoading(false))
     return () => { active = false }
-  }, [mode, reloadKey])
+  }, [mediaType, mode, reloadKey])
 
   const changeMethod = (value) => {
     setLoading(true)
@@ -42,6 +43,10 @@ export default function Recommendations({ user, onRate, onDetails }) {
         title={<>{COPY.recommendations.titleStart}<br /><em>{COPY.recommendations.titleAccent}</em></>}
         description={COPY.recommendations.description}
       />
+      <div className="media-switch segmented" aria-label="نوع پیشنهاد">
+        <button type="button" aria-pressed={mediaType === 'movie'} className={mediaType === 'movie' ? 'selected' : ''} onClick={() => { setLoading(true); setMovies([]); setMediaType('movie') }}>{COPY.recommendations.moviesTab}</button>
+        <button type="button" aria-pressed={mediaType === 'serial'} className={mediaType === 'serial' ? 'selected' : ''} onClick={() => { setLoading(true); setMovies([]); setMediaType('serial') }}>{COPY.recommendations.serialsTab}</button>
+      </div>
       <div className="method-bar">
         <div className="segmented" aria-label={COPY.recommendations.listEyebrow}>
           {MODE_OPTIONS.map(([value, label]) => (
@@ -55,7 +60,7 @@ export default function Recommendations({ user, onRate, onDetails }) {
       <p className="context-note">{COPY.recommendations.note}</p>
       {error ? <ErrorMessage>{error}</ErrorMessage> : null}
       <SectionTitle eyebrow={COPY.recommendations.listEyebrow} title={COPY.recommendations.listTitle} />
-      <MovieGrid movies={movies} loading={loading} user={user} onRate={onRate} onDetails={onDetails} emptyTitle={COPY.recommendations.empty} />
+      <MovieGrid movies={movies} loading={loading} user={user} onRate={onRate} onDetails={onDetails} onTrack={onTrack} emptyTitle={COPY.recommendations.empty} />
     </>
   )
 }

@@ -14,8 +14,8 @@ from sqlalchemy.orm import Session, sessionmaker
 from app.main import auth_me, bulk_rate, current_user, logout, register, validate_origin
 from backend.movie_details import build_movie_summary, shorten_overview
 from backend.schemas import Credentials, QuizIn, RatingBulkIn
-from backend.services import MovieService, RatingService, RecommendationService
-from database.models import Base, Movie, MovieMetadata, Rating, User
+from backend.services import LibraryService, MovieService, RatingService, RecommendationService
+from database.models import Base, LibraryEntry, Movie, MovieMetadata, Rating, User, ViewingActivity
 from database.search import ensure_movie_search, normalize_search_text
 from scripts.enrich_movie_metadata import request_json, upsert_metadata
 
@@ -90,6 +90,48 @@ def test_rating_upsert_is_immediately_visible_without_model_rebuild(product_db):
         assert first.id == second.id
         assert db.scalar(select(func.count(Rating.id))) == 1
         assert second.value == 4.5
+        assert db.scalar(select(func.count(LibraryEntry.id))) == 1
+        assert db.scalar(select(func.sum(ViewingActivity.units))) == 1
+
+
+def test_movie_watchlist_and_series_progress_feed_activity_graph(product_db):
+    with product_db() as db:
+        user = User(username="tracker", password_hash="unused")
+        series = Movie(
+            id=4, title="The Test Show (2025)", genres="Drama",
+            media_type="serial", total_seasons=2, total_episodes=12,
+        )
+        db.add_all([user, series])
+        db.commit()
+
+        watchlist = LibraryService.upsert(db, user.id, 1, status="watchlist")
+        assert watchlist["status"] == "watchlist"
+        assert LibraryService.activity(db, user.id)["total_units"] == 0
+
+        first = LibraryService.upsert(
+            db, user.id, series.id, status="watching",
+            current_season=1, current_episode=3, watched_episodes=3,
+        )
+        second = LibraryService.upsert(
+            db, user.id, series.id, status="watching",
+            current_season=1, current_episode=5, watched_episodes=5,
+        )
+        assert first["remaining_episodes"] == 9
+        assert second["remaining_episodes"] == 7
+        activity = LibraryService.activity(db, user.id)
+        assert activity["total_units"] == 5
+        assert activity["active_days"] == 1
+        assert activity["days"][-1]["level"] == 4
+
+
+def test_series_progress_cannot_exceed_catalog_total(product_db):
+    with product_db() as db:
+        user = User(username="serialviewer", password_hash="unused")
+        series = Movie(id=4, title="Finite (2024)", genres="Drama", media_type="serial", total_episodes=8)
+        db.add_all([user, series])
+        db.commit()
+        with pytest.raises(ValueError):
+            LibraryService.upsert(db, user.id, 4, status="watching", watched_episodes=9)
 
 
 def test_enrichment_retries_429_retry_after():

@@ -77,6 +77,10 @@ Containers are broad and cinematic, not a nested-card dashboard. Cards are reser
 - Forms: visible labels, owned validation, persistent field geometry, clear selected states, and one primary action per stage.
 - Dialogs: native dialog semantics with explicit title, close action, focus restoration, Escape, and non-destructive default focus.
 - Status: one shared inline/live-region language for offline, update, install, loading, errors, and success.
+- Watch tracker: broad account workspace with a 53-week, Sunday-aligned activity grid; five semantic green levels encode zero through high daily viewing without replacing textual totals.
+- Library row: artwork, media badge, title, series progress/remaining episodes, and task-specific actions. Watchlist, currently watching, and completed sections share this single row owner.
+
+The tracker is the one deliberately data-dense surface. Its contribution grid borrows the familiar GitHub temporal grammar while using Cinematch tokens, Persian labels, RTL surrounding flow, and an LTR chronological grid.
 
 ## Motion
 

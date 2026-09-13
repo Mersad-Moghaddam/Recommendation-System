@@ -52,8 +52,8 @@ function request(path, options = {}) {
 
 export const api = {
   stats: () => request('/stats'),
-  movies: ({ query = '', iranian = false, genre = '', skip = 0, limit = 24, signal } = {}) => request(
-    `/movies?${new URLSearchParams({ q: query, persian_only: iranian, genre, skip, limit })}`,
+  movies: ({ query = '', iranian = false, genre = '', mediaType = 'movie', skip = 0, limit = 24, signal } = {}) => request(
+    `/movies?${new URLSearchParams({ q: query, persian_only: iranian, genre, media_type: mediaType, skip, limit })}`,
     { signal },
   ),
   movieDetails: (id) => request(`/movies/${id}/details`),
@@ -77,8 +77,8 @@ export const api = {
     body: JSON.stringify({ ratings }),
   }),
   ratings: () => request('/users/me/ratings'),
-  recommendations: (mode = 'balanced') => request(
-    `/recommendations/me?mode=${encodeURIComponent(mode)}&n=12`,
+  recommendations: (mode = 'balanced', mediaType = 'movie') => request(
+    `/recommendations/me?mode=${encodeURIComponent(mode)}&media_type=${encodeURIComponent(mediaType)}&n=12`,
   ),
   quiz: (payload) => request('/recommendations/quiz', {
     method: 'POST',
@@ -86,4 +86,13 @@ export const api = {
   }),
   onboarding: () => request('/onboarding/movies'),
   skipOnboarding: () => request('/onboarding/skip', { method: 'POST' }),
+  library: ({ status = '', mediaType = '' } = {}) => request(
+    `/users/me/library?${new URLSearchParams({ status, media_type: mediaType })}`,
+  ),
+  saveLibrary: (movieId, payload) => request(`/users/me/library/${movieId}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  }),
+  removeLibrary: (movieId) => request(`/users/me/library/${movieId}`, { method: 'DELETE' }),
+  activity: (days = 371) => request(`/users/me/activity?days=${days}`),
 }

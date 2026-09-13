@@ -1,6 +1,6 @@
 # سینمچ — پیشنهاد فیلم برای امشب
 
-سینمچ یک PWA فارسی و نصب‌پذیر برای کشف و پیشنهاد توضیح‌پذیر فیلم است. خانه، جست‌وجو، جزئیات و فیلم‌های مشابه عمومی‌اند؛ پیشنهاد هوشمند، امتیازدهی و پیشنهادهای شخصی پس از ساخت حساب فعال می‌شوند.
+سینمچ یک PWA فارسی و نصب‌پذیر برای کشف، پیشنهاد و پیگیری فیلم و سریال است. خانه، جست‌وجو، جزئیات و آثار مشابه عمومی‌اند؛ پیشنهاد هوشمند، امتیازدهی، واچ‌لیست و دفتر تماشا پس از ساخت حساب فعال می‌شوند.
 
 ## قابلیت‌های اصلی
 
@@ -12,6 +12,9 @@
 - نشست امضاشده در cookie از نوع `HttpOnly` و `SameSite=Strict`، همراه کنترل Origin روی درخواست‌های تغییردهنده
 - PWA تک‌دامنه با نصب، راهنمای iOS، وضعیت آفلاین و اعلان به‌روزرسانی؛ داده‌های خصوصی cache نمی‌شوند
 - رابط RTL واکنش‌گرا با Estedad، Vazirmatn، targetهای حداقل ۴۴ پیکسل و پشتیبانی reduced motion
+- تفکیک کامل کاتالوگ و پیشنهادهای فیلم/سریال، واچ‌لیست و فهرست دیده‌شده‌ها
+- ثبت فصل، قسمت و تعداد قسمت‌های دیده‌شده با محاسبهٔ قسمت‌های باقی‌مانده
+- نمودار فعالیت ۵۳ هفته‌ای مشابه contribution graph گیت‌هاب با شدت رنگ بر اساس تعداد تماشا
 
 ## معماری
 
@@ -37,10 +40,21 @@ npm install --prefix frontend
 python scripts/download_data.py
 python scripts/initialize_database.py
 python scripts/expand_movie_catalog.py
+python scripts/seed_tv_series.py
 python scripts/train_models.py
 ```
 
 `expand_movie_catalog.py` فایل‌های `movies.csv` و `links.csv` از MovieLens 32M را با checksum رسمی کنترل و به‌شکل idempotent وارد می‌کند. داده‌ها، دیتابیس و artifact مدل عمداً وارد Git نمی‌شوند.
+
+سیدر سریال به توکن TMDB نیاز دارد و به‌صورت پیش‌فرض بازهٔ ۱۹۰۰ تا سال جاری را سال‌به‌سال پیمایش می‌کند تا بیشترین تعداد قابل کشف را وارد کند. اجرای دوباره رکورد تکراری نمی‌سازد و سریال‌های دارای اطلاعات کامل را رد می‌کند:
+
+```bash
+export TMDB_READ_TOKEN='...'
+python scripts/seed_tv_series.py                 # کاتالوگ حداکثری و قابل‌ادامه
+python scripts/seed_tv_series.py --limit 1000    # اجرای کنترل‌شده
+python scripts/seed_tv_series.py --popular-only --pages 50
+python scripts/train_models.py
+```
 
 ### افزودن خلاصه و metadata از TMDB
 
@@ -90,6 +104,8 @@ APP_ENV=production SECRET_KEY='a-long-random-secret' uvicorn app.main:app
 | عضو | POST | `/api/ratings/bulk` | ذخیرهٔ امتیازهای onboarding |
 | عضو | GET | `/api/recommendations/me` | پیشنهاد هیبرید شخصی |
 | عضو | POST | `/api/recommendations/quiz` | پیشنهاد بر اساس حس امشب |
+| عضو | GET/PUT/DELETE | `/api/users/me/library` | واچ‌لیست، دیده‌شده‌ها و پیشرفت سریال |
+| عضو | GET | `/api/users/me/activity` | فعالیت روزانه، شدت رنگ و streak |
 
 همهٔ درخواست‌های مرورگر با `credentials: include` ارسال می‌شوند. پاسخ ورود توکن قابل‌خواندن برای JavaScript ندارد.
 

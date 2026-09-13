@@ -2,21 +2,26 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import joblib
 import pandas as pd
 from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
 
-from backend.constants import ERROR_MESSAGES, GENRE_LABELS, PERSIAN_MOVIE_ID_START
+from backend.constants import ERROR_MESSAGES, GENRE_LABELS, PERSIAN_MOVIE_ID_START, SERIAL_ID_START
 from backend.movie_details import build_movie_details, build_movie_summary
 from backend.security import hash_password, verify_password
 from config import settings
-from database.models import Movie, MovieMetadata, Rating, User, UserPreference
+from database.models import LibraryEntry, Movie, MovieMetadata, Rating, User, UserPreference, ViewingActivity
 from database.search import fts_query
 from recommender import RecommendationEngine
+
+
+def viewing_today() -> date:
+    return datetime.now(ZoneInfo(settings.timezone)).date()
 
 
 class UserService:
@@ -74,13 +79,17 @@ class MovieService:
         limit: int = 24,
         persian_only: bool = False,
         genre: str = "",
+        media_type: str = "movie",
     ) -> list[dict]:
         if genre and genre not in GENRE_LABELS:
             raise ValueError(ERROR_MESSAGES["invalid_genre"])
+        if media_type not in {"movie", "serial"}:
+            raise ValueError(ERROR_MESSAGES["invalid_media_type"])
         stmt = select(Movie, MovieMetadata).outerjoin(MovieMetadata)
+        stmt = stmt.where(Movie.media_type == media_type)
         if persian_only:
             stmt = stmt.where(
-                (Movie.id >= PERSIAN_MOVIE_ID_START)
+                ((Movie.id >= PERSIAN_MOVIE_ID_START) & (Movie.id < SERIAL_ID_START))
                 | MovieMetadata.countries.contains("IR")
             )
         if genre:
@@ -91,10 +100,12 @@ class MovieService:
                 return []
             ranked_ids = text(
                 "SELECT CAST(movie_search.movie_id AS INTEGER) FROM movie_search "
+                "JOIN movies AS m ON m.id = CAST(movie_search.movie_id AS INTEGER) "
                 "LEFT JOIN movie_metadata AS mm ON mm.movie_id = CAST(movie_search.movie_id AS INTEGER) "
                 "WHERE movie_search MATCH :match "
+                "AND m.media_type = :media_type "
                 "AND (:persian = 0 OR CAST(movie_search.movie_id AS INTEGER) >= :persian_start "
-                "OR mm.countries LIKE '%\"IR\"%') "
+                "AND CAST(movie_search.movie_id AS INTEGER) < :serial_start OR mm.countries LIKE '%\"IR\"%') "
                 "ORDER BY bm25(movie_search) LIMIT :window OFFSET :skip"
             )
             ids = list(db.scalars(ranked_ids, {
@@ -103,6 +114,8 @@ class MovieService:
                 "skip": skip,
                 "persian": int(persian_only),
                 "persian_start": PERSIAN_MOVIE_ID_START,
+                "serial_start": SERIAL_ID_START,
+                "media_type": media_type,
             }))
             if not ids:
                 return []
@@ -161,6 +174,7 @@ class RatingService:
         rating = cls._upsert_without_commit(db, user_id, movie_id, value)
         db.commit()
         db.refresh(rating)
+        LibraryService.upsert(db, user_id, movie_id, status="completed")
         return rating
 
     @classmethod
@@ -177,7 +191,162 @@ class RatingService:
         db.commit()
         for rating in ratings:
             db.refresh(rating)
+            LibraryService.upsert(db, user_id, rating.movie_id, status="completed")
         return ratings, completed
+
+
+class LibraryService:
+    STATUSES = {"watchlist", "watching", "completed"}
+
+    @staticmethod
+    def _serialize(entry: LibraryEntry, movie: Movie, metadata: MovieMetadata | None = None) -> dict:
+        summary = build_movie_summary(movie, metadata)
+        total = movie.total_episodes if movie.media_type == "serial" else 1
+        watched = entry.watched_episodes if movie.media_type == "serial" else int(entry.status == "completed")
+        remaining = max(total - watched, 0) if total is not None else None
+        progress = min(round((watched / total) * 100), 100) if total else (100 if entry.status == "completed" else 0)
+        return {
+            **summary,
+            "entry_id": entry.id,
+            "movie_id": movie.id,
+            "status": entry.status,
+            "current_season": entry.current_season,
+            "current_episode": entry.current_episode,
+            "watched_episodes": watched,
+            "remaining_episodes": remaining,
+            "progress_percent": progress,
+            "started_at": entry.started_at.isoformat() if entry.started_at else None,
+            "completed_at": entry.completed_at.isoformat() if entry.completed_at else None,
+            "updated_at": entry.updated_at.isoformat(),
+        }
+
+    @classmethod
+    def list(cls, db: Session, user_id: int, status: str = "", media_type: str = "") -> list[dict]:
+        stmt = (
+            select(LibraryEntry, Movie, MovieMetadata)
+            .join(Movie, LibraryEntry.movie_id == Movie.id)
+            .outerjoin(MovieMetadata, MovieMetadata.movie_id == Movie.id)
+            .where(LibraryEntry.user_id == user_id)
+        )
+        if status:
+            if status not in cls.STATUSES:
+                raise ValueError(ERROR_MESSAGES["invalid_library_progress"])
+            stmt = stmt.where(LibraryEntry.status == status)
+        if media_type:
+            if media_type not in {"movie", "serial"}:
+                raise ValueError(ERROR_MESSAGES["invalid_media_type"])
+            stmt = stmt.where(Movie.media_type == media_type)
+        rows = db.execute(stmt.order_by(LibraryEntry.updated_at.desc())).all()
+        return [cls._serialize(*row) for row in rows]
+
+    @classmethod
+    def upsert(
+        cls,
+        db: Session,
+        user_id: int,
+        movie_id: int,
+        *,
+        status: str,
+        current_season: int | None = None,
+        current_episode: int | None = None,
+        watched_episodes: int = 0,
+    ) -> dict:
+        movie = db.get(Movie, movie_id)
+        if movie is None:
+            raise KeyError(ERROR_MESSAGES["movie_not_found"])
+        entry = db.scalar(select(LibraryEntry).where(
+            LibraryEntry.user_id == user_id, LibraryEntry.movie_id == movie_id
+        ))
+        now = datetime.now(timezone.utc)
+        previous_units = 0
+        if entry:
+            previous_units = entry.watched_episodes if movie.media_type == "serial" else int(entry.status == "completed")
+        else:
+            entry = LibraryEntry(user_id=user_id, movie_id=movie_id)
+            db.add(entry)
+
+        if movie.media_type == "movie":
+            current_season = None
+            current_episode = None
+            watched_episodes = int(status == "completed")
+        else:
+            if movie.total_seasons and current_season and current_season > movie.total_seasons:
+                raise ValueError(ERROR_MESSAGES["invalid_library_progress"])
+            if movie.total_episodes and watched_episodes > movie.total_episodes:
+                raise ValueError(ERROR_MESSAGES["invalid_library_progress"])
+            if status == "completed" and movie.total_episodes:
+                watched_episodes = movie.total_episodes
+            if status == "watchlist":
+                current_season = current_episode = None
+                watched_episodes = 0
+
+        entry.status = status
+        entry.current_season = current_season
+        entry.current_episode = current_episode
+        entry.watched_episodes = watched_episodes
+        entry.started_at = entry.started_at or (now if status != "watchlist" else None)
+        entry.completed_at = now if status == "completed" else None
+        entry.updated_at = now
+
+        new_units = watched_episodes if movie.media_type == "serial" else int(status == "completed")
+        delta = max(new_units - previous_units, 0)
+        if delta:
+            db.add(ViewingActivity(
+                user_id=user_id,
+                movie_id=movie_id,
+                activity_date=viewing_today(),
+                units=delta,
+                media_type=movie.media_type,
+                season=current_season,
+                episode=current_episode,
+            ))
+        db.commit()
+        db.refresh(entry)
+        metadata = db.get(MovieMetadata, movie_id)
+        return cls._serialize(entry, movie, metadata)
+
+    @staticmethod
+    def delete(db: Session, user_id: int, movie_id: int) -> None:
+        entry = db.scalar(select(LibraryEntry).where(
+            LibraryEntry.user_id == user_id, LibraryEntry.movie_id == movie_id
+        ))
+        if entry:
+            db.delete(entry)
+            db.commit()
+
+    @staticmethod
+    def activity(db: Session, user_id: int, days: int = 371) -> dict:
+        today = viewing_today()
+        # Align the graph to Sunday-starting weeks like GitHub. The last week is
+        # intentionally partial, so the response spans 365–371 days for a year.
+        sunday_index = (today.weekday() + 1) % 7
+        weeks = max(days // 7, 1)
+        start = today - timedelta(days=(weeks - 1) * 7 + sunday_index)
+        rows = db.execute(
+            select(ViewingActivity.activity_date, func.sum(ViewingActivity.units))
+            .where(ViewingActivity.user_id == user_id, ViewingActivity.activity_date >= start)
+            .group_by(ViewingActivity.activity_date)
+        ).all()
+        counts = {activity_date: int(units) for activity_date, units in rows}
+        result = []
+        streak = longest = 0
+        for offset in range((today - start).days + 1):
+            current = start + timedelta(days=offset)
+            count = counts.get(current, 0)
+            if count:
+                streak += 1
+                longest = max(longest, streak)
+            else:
+                streak = 0
+            level = 0 if count == 0 else 1 if count == 1 else 2 if count == 2 else 3 if count <= 4 else 4
+            result.append({"date": current.isoformat(), "count": count, "level": level})
+        return {
+            "days": result,
+            "total_units": sum(counts.values()),
+            "active_days": len(counts),
+            "current_streak": streak,
+            "longest_streak": longest,
+        }
 
 
 class RecommendationService:
@@ -272,19 +441,37 @@ class RecommendationService:
                 hydrated.append({**record, **summary, "movie_id": record["movie_id"]})
         return hydrated
 
+    @staticmethod
+    def _already_viewed(db: Session, user_id: int) -> set[int]:
+        return set(db.scalars(
+            select(LibraryEntry.movie_id).where(
+                LibraryEntry.user_id == user_id,
+                LibraryEntry.status.in_(["watching", "completed"]),
+            )
+        ))
+
     @classmethod
-    def recommend(cls, db: Session, user_id: int, method: str, n: int, mode: str = "balanced") -> list[dict]:
-        records = cls.engine(db).recommend_history(cls._history(db, user_id), method, n, mode)
-        return cls._hydrate(db, records)
+    def recommend(cls, db: Session, user_id: int, method: str, n: int, mode: str = "balanced", media_type: str = "movie") -> list[dict]:
+        records = cls.engine(db).recommend_history(cls._history(db, user_id), method, min(n * 5, 100), mode)
+        viewed = cls._already_viewed(db, user_id)
+        return [item for item in cls._hydrate(db, records) if item["media_type"] == media_type and item["movie_id"] not in viewed][:n]
 
     @classmethod
     def quiz(cls, db: Session, user_id: int, **answers) -> list[dict]:
+        media_type = answers.pop("media_type", "movie")
+        requested = answers.get("n", 12)
+        answers["n"] = min(requested * 5, 100)
         records = cls.engine(db).preference_quiz(history=cls._history(db, user_id), **answers)
-        return cls._hydrate(db, records)
+        viewed = cls._already_viewed(db, user_id)
+        return [item for item in cls._hydrate(db, records) if item["media_type"] == media_type and item["movie_id"] not in viewed][:requested]
 
     @classmethod
     def similar(cls, db: Session, movie_id: int, n: int) -> list[dict]:
-        return cls._hydrate(db, cls.engine(db).similar_movies(movie_id, n))
+        seed = db.get(Movie, movie_id)
+        if seed is None:
+            raise KeyError(ERROR_MESSAGES["movie_not_found"])
+        records = cls.engine(db).similar_movies(movie_id, min(n * 5, 100))
+        return [item for item in cls._hydrate(db, records) if item["media_type"] == seed.media_type][:n]
 
     @classmethod
     def onboarding(cls, db: Session, n: int = 12) -> list[dict]:

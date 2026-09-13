@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 
-from backend.constants import GENRE_EXPERIENCES, GENRE_LABELS, MOVIE_DETAIL_COPY, PERSIAN_MOVIE_ID_START
+from backend.constants import GENRE_EXPERIENCES, GENRE_LABELS, MOVIE_DETAIL_COPY, PERSIAN_MOVIE_ID_START, SERIAL_ID_START
 
 YEAR_PATTERN = re.compile(r"\((\d{4})\)\s*$")
 SENTENCE_PATTERN = re.compile(r"(?<=[.!?؟])\s+")
@@ -48,7 +48,7 @@ def metadata_overview(metadata) -> tuple[str | None, str | None, str]:
 
 def is_persian_movie(movie, metadata=None) -> bool:
     countries = getattr(metadata, "countries", None) or []
-    return movie.id >= PERSIAN_MOVIE_ID_START or "IR" in countries
+    return PERSIAN_MOVIE_ID_START <= movie.id < SERIAL_ID_START or "IR" in countries
 
 
 def build_movie_summary(movie, metadata=None) -> dict:
@@ -63,6 +63,9 @@ def build_movie_summary(movie, metadata=None) -> dict:
         "overview_short": shorten_overview(overview),
         "overview_locale": locale,
         "overview_source": source,
+        "media_type": getattr(movie, "media_type", "movie") or "movie",
+        "total_seasons": getattr(movie, "total_seasons", None),
+        "total_episodes": getattr(movie, "total_episodes", None),
     }
 
 

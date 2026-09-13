@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ArrowRight, CalendarBlank as CalendarDays, Database, Info, Sparkle as Sparkles, Star, UsersThree as UsersRound } from '@phosphor-icons/react'
+import { ArrowRight, BookmarkSimple, CalendarBlank as CalendarDays, CheckCircle, Database, Info, PlayCircle, Sparkle as Sparkles, Star, UsersThree as UsersRound } from '@phosphor-icons/react'
 import { api } from '../api'
 import { DetailArtwork } from '../components/MovieArtwork'
 import MovieGrid from '../components/MovieGrid'
@@ -26,7 +26,7 @@ function useMoviePageData(id) {
   return { details, similar, error }
 }
 
-export default function MovieDetails({ id, seed, user, onRate, onDetails, goBack }) {
+export default function MovieDetails({ id, seed, user, onRate, onDetails, onTrack, goBack }) {
   const { details, similar, error } = useMoviePageData(id)
   const matchingSeed = seed && movieId(seed) === Number(id) ? seed : null
   const movie = details || matchingSeed
@@ -36,14 +36,14 @@ export default function MovieDetails({ id, seed, user, onRate, onDetails, goBack
   return (
     <>
       <button type="button" className="back-button" onClick={goBack}><ArrowRight size={18} aria-hidden="true" />{COPY.details.back}</button>
-      <DetailHero movie={movie} details={details} onRate={onRate} />
+      <DetailHero movie={movie} details={details} onRate={onRate} onTrack={onTrack} />
       {error ? <ErrorMessage>{error}</ErrorMessage> : null}
-      <DetailExtras details={details} similar={similar} id={id} user={user} onRate={onRate} onDetails={onDetails} />
+      <DetailExtras details={details} similar={similar} id={id} user={user} onRate={onRate} onDetails={onDetails} onTrack={onTrack} />
     </>
   )
 }
 
-function DetailHero({ movie, details, onRate }) {
+function DetailHero({ movie, details, onRate, onTrack }) {
   return (
     <article className="detail-hero">
       <div className="detail-poster"><DetailArtwork movie={movie} /></div>
@@ -59,7 +59,11 @@ function DetailHero({ movie, details, onRate }) {
           </p>
         ) : <p className="detail-loading">{COPY.details.loading}</p>}
         <DetailFacts details={details} />
-        <div className="detail-actions"><button type="button" className="button primary" onClick={() => onRate(movie)}><Star size={18} aria-hidden="true" />{COPY.details.rateAction}</button></div>
+        <div className="detail-actions">
+          {movie.media_type !== 'serial' ? <button type="button" className="button primary" onClick={() => onRate(movie)}><Star size={18} aria-hidden="true" />{COPY.details.rateAction}</button> : null}
+          <button type="button" className="button secondary" onClick={() => onTrack(movie, 'watchlist')}><BookmarkSimple size={18} aria-hidden="true" />{COPY.details.addWatchlist}</button>
+          <button type="button" className="button secondary" onClick={() => onTrack(movie, movie.media_type === 'serial' ? 'watching' : 'completed')}>{movie.media_type === 'serial' ? <PlayCircle size={18} aria-hidden="true" /> : <CheckCircle size={18} aria-hidden="true" />}{movie.media_type === 'serial' ? COPY.details.trackSerial : COPY.details.markWatched}</button>
+        </div>
       </div>
     </article>
   )
@@ -77,7 +81,7 @@ function DetailFacts({ details }) {
   )
 }
 
-function DetailExtras({ details, similar, id, user, onRate, onDetails }) {
+function DetailExtras({ details, similar, id, user, onRate, onDetails, onTrack }) {
   if (!details) return null
   const relatedMovies = similar.filter((item) => movieId(item) !== Number(id))
   return (
@@ -90,7 +94,7 @@ function DetailExtras({ details, similar, id, user, onRate, onDetails }) {
       </section>
       <section className="similar-section">
         <SectionTitle eyebrow={COPY.details.similarEyebrow} title={COPY.details.similarTitle} />
-        <MovieGrid movies={relatedMovies} user={user} onRate={onRate} onDetails={onDetails} />
+        <MovieGrid movies={relatedMovies} user={user} onRate={onRate} onDetails={onDetails} onTrack={onTrack} />
       </section>
     </>
   )
