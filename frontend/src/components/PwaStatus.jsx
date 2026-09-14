@@ -19,6 +19,7 @@ export default function PwaStatus() {
   const online = useSyncExternalStore(subscribeToConnectivity, getOnlineSnapshot, getServerOnlineSnapshot)
   const [installEvent, setInstallEvent] = useState(null)
   const [dismissedIos, setDismissedIos] = useState(false)
+  const [showIosInstallGuide, setShowIosInstallGuide] = useState(false)
   const {
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
@@ -57,6 +58,9 @@ export default function PwaStatus() {
   }
   if (installEvent) {
     return <button type="button" className="install-prompt" onClick={install}>{COPY.pwa.install}</button>
+  }
+  if (isIos && !showIosInstallGuide) {
+    return <button type="button" className="install-prompt" onClick={() => setShowIosInstallGuide(true)}>{COPY.pwa.install}</button>
   }
   if (isIos && !dismissedIos) {
     return (

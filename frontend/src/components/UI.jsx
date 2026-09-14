@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useId, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { FilmReel as Film, SpinnerGap as LoaderCircle, WarningCircle as AlertCircle, X } from '@phosphor-icons/react'
 import { COPY } from '../constants/copy'
@@ -48,24 +48,31 @@ export function ErrorMessage({ children }) {
 
 export function Dialog({ title, children, onClose, className = '' }) {
   const dialogRef = useRef(null)
+  const restoreFocusRef = useRef(document.activeElement)
+  const titleId = useId()
   useEffect(() => {
     const dialog = dialogRef.current
+    const focusTarget = restoreFocusRef.current
     if (typeof dialog?.showModal === 'function') dialog.showModal()
     else dialog?.setAttribute('open', '')
+    dialog?.querySelector('button, input, select, textarea, [tabindex]:not([tabindex="-1"])')?.focus({ preventScroll: true })
     return () => {
       if (typeof dialog?.close === 'function') dialog.close()
       else dialog?.removeAttribute('open')
+      if (focusTarget instanceof HTMLElement && focusTarget.isConnected) {
+        focusTarget.focus({ preventScroll: true })
+      }
     }
   }, [])
   return createPortal(
     <dialog
       ref={dialogRef}
       className={`dialog ${className}`}
-      aria-label={title}
+      aria-labelledby={titleId}
       onCancel={(event) => { event.preventDefault(); onClose() }}
     >
       <section className="dialog-panel">
-        <header><h2>{title}</h2><button type="button" onClick={onClose} aria-label={COPY.common.close}><X aria-hidden="true" /></button></header>
+        <header><h2 id={titleId}>{title}</h2><button type="button" onClick={onClose} aria-label={COPY.common.close}><X aria-hidden="true" /></button></header>
         {children}
       </section>
     </dialog>,

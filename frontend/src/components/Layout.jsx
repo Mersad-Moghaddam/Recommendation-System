@@ -1,11 +1,9 @@
-import { Brain as BrainCircuit, ClockCounterClockwise, Compass, House as Home, SignIn as LogIn, SignOut, Sparkle as Sparkles, UserCircle as UserRound } from '@phosphor-icons/react'
+import { Brain as BrainCircuit, ClockCounterClockwise, Compass, House as Home, SignIn as LogIn, SignOut, Sparkle as Sparkles, Translate, UserCircle as UserRound } from '@phosphor-icons/react'
 import { COPY, NAV_ITEMS } from '../constants/copy'
 import PwaStatus from './PwaStatus'
 import ThemeToggle from './ThemeToggle'
 
-const ICONS = { home: Home, concierge: BrainCircuit, discover: Compass, recommendations: Sparkles, tracker: ClockCounterClockwise }
-const PAGE_LABELS = Object.fromEntries(NAV_ITEMS.map((item) => [item.id, item.label]))
-const FOOTER_ITEMS = NAV_ITEMS.filter((item) => !item.auth)
+const ICONS = { home: Home, concierge: BrainCircuit, discover: Compass, recommendations: Sparkles, tracker: ClockCounterClockwise, profile: UserRound }
 
 function BrandGlyph() {
   return (
@@ -17,8 +15,8 @@ function BrandGlyph() {
   )
 }
 
-function Navigation({ page, navigate, user, mobile = false }) {
-  const visibleItems = NAV_ITEMS.filter((item) => !item.auth || user)
+function Navigation({ page, navigate, mobile = false }) {
+  const visibleItems = NAV_ITEMS
   return (
     <nav className={mobile ? 'dock-nav' : 'masthead-nav'} aria-label={COPY.layout.navLabel}>
       {visibleItems.map((item) => {
@@ -35,7 +33,19 @@ function Navigation({ page, navigate, user, mobile = false }) {
   )
 }
 
-export default function Layout({ children, page, navigate, user, logout }) {
+function LanguageSwitcher({ locale, setLocale }) {
+  const nextLocale = locale === 'en' ? 'fa' : 'en'
+  const label = nextLocale === 'en' ? COPY.layout.switchToEnglish : COPY.layout.switchToPersian
+  return (
+    <button className="theme-toggle" type="button" onClick={() => setLocale(nextLocale)} aria-label={label} title={label}>
+      <Translate size={19} aria-hidden="true" />
+      <span lang={nextLocale} dir={nextLocale === 'fa' ? 'rtl' : 'ltr'}>{nextLocale === 'en' ? 'EN' : 'فا'}</span>
+    </button>
+  )
+}
+
+export default function Layout({ children, page, navigate, user, logout, locale, setLocale }) {
+  const pageLabels = Object.fromEntries(NAV_ITEMS.map((item) => [item.id, item.label]))
   return (
     <div className="app-shell">
       <a className="skip-link" href="#main-content">{COPY.app.skipLink}</a>
@@ -45,13 +55,14 @@ export default function Layout({ children, page, navigate, user, logout }) {
           <span className="brand-mark"><BrandGlyph /></span>
           <span className="brand-copy"><b>{COPY.layout.brandStart}<em>{COPY.layout.brandEnd}</em></b><small>{COPY.layout.tagline}</small></span>
         </a>
-        <div className="route-title" aria-hidden="true"><span>اکنون روی پرده</span><b>{PAGE_LABELS[page] || `${COPY.layout.brandStart}${COPY.layout.brandEnd}`}</b></div>
+        <div className="route-title" aria-hidden="true"><span>{COPY.layout.nowShowing}</span><b>{pageLabels[page] || `${COPY.layout.brandStart}${COPY.layout.brandEnd}`}</b></div>
         <Navigation page={page} navigate={navigate} user={user} />
         <div className="masthead-actions">
           <PwaStatus />
+          <LanguageSwitcher locale={locale} setLocale={setLocale} />
           <ThemeToggle />
           {user ? (
-            <><a className="account-action" href="/#tracker" onClick={(event) => navigate('tracker', event)} aria-label={`${COPY.layout.account}، ${user.username}`}><UserRound size={19} aria-hidden="true" /><span>{user.username}</span></a><button className="logout-action" type="button" onClick={logout} aria-label={COPY.layout.logout}><SignOut size={18} aria-hidden="true" /></button></>
+            <><a className="account-action" href="/#profile" onClick={(event) => navigate('profile', event)} aria-label={`${COPY.layout.account}: ${user.username}`}><UserRound size={19} aria-hidden="true" /><span>{user.username}</span></a><button className="logout-action" type="button" onClick={logout} aria-label={COPY.layout.logout}><SignOut size={18} aria-hidden="true" /></button></>
           ) : (
             <a className="account-action" href="/#auth" onClick={(event) => navigate('auth', event)}><LogIn size={19} aria-hidden="true" /><span>{COPY.layout.login}</span></a>
           )}
@@ -64,11 +75,12 @@ export default function Layout({ children, page, navigate, user, logout }) {
 }
 
 export function SiteFooter({ navigate }) {
+  const footerItems = NAV_ITEMS.filter((item) => !item.auth)
   return (
     <footer className="site-footer">
       <div className="footer-lead"><span>{COPY.layout.footerEyebrow}</span><h2>{COPY.layout.footerTitle}</h2><p>{COPY.layout.footerText}</p></div>
-      <div className="footer-data"><a href="https://www.themoviedb.org" target="_blank" rel="noreferrer" aria-label="وب‌سایت TMDB"><span className="tmdb-wordmark" lang="en" dir="ltr" translate="no">TMDB</span></a><p>{COPY.layout.footerData}</p></div>
-      <nav className="footer-nav" aria-label={COPY.layout.footerNavLabel}>{FOOTER_ITEMS.map((item) => <a key={item.id} href={`/#${item.id}`} onClick={(event) => navigate(item.id, event)}>{item.label}</a>)}</nav>
+      <div className="footer-data"><a href="https://www.themoviedb.org" target="_blank" rel="noreferrer" aria-label={COPY.layout.tmdbLabel}><span className="tmdb-wordmark" lang="en" dir="ltr" translate="no">TMDB</span></a><p>{COPY.layout.footerData}</p></div>
+      <nav className="footer-nav" aria-label={COPY.layout.footerNavLabel}>{footerItems.map((item) => <a key={item.id} href={`/#${item.id}`} onClick={(event) => navigate(item.id, event)}>{item.label}</a>)}</nav>
       <Sparkles className="footer-spark" aria-hidden="true" />
     </footer>
   )

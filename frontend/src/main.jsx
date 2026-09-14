@@ -2,10 +2,11 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { IconContext } from '@phosphor-icons/react'
 import App from './App.jsx'
+import { LocaleProvider } from './locale.jsx'
 import './styles.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <IconContext.Provider value={{ weight: 'duotone', size: 20 }}><App /></IconContext.Provider>
+    <LocaleProvider><IconContext.Provider value={{ weight: 'duotone', size: 20 }}><App /></IconContext.Provider></LocaleProvider>
   </StrictMode>,
 )

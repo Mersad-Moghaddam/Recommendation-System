@@ -250,6 +250,7 @@ class LibraryService:
         current_season: int | None = None,
         current_episode: int | None = None,
         watched_episodes: int = 0,
+        progress_mutation_id: str | None = None,
     ) -> dict:
         movie = db.get(Movie, movie_id)
         if movie is None:
@@ -284,6 +285,8 @@ class LibraryService:
         entry.current_season = current_season
         entry.current_episode = current_episode
         entry.watched_episodes = watched_episodes
+        if progress_mutation_id:
+            entry.last_progress_mutation_id = progress_mutation_id
         entry.started_at = entry.started_at or (now if status != "watchlist" else None)
         entry.completed_at = now if status == "completed" else None
         entry.updated_at = now
@@ -313,6 +316,80 @@ class LibraryService:
         if entry:
             db.delete(entry)
             db.commit()
+
+    @classmethod
+    def advance_episode(cls, db: Session, user_id: int, movie_id: int, mutation_id: str) -> dict:
+        entry = db.scalar(select(LibraryEntry).where(
+            LibraryEntry.user_id == user_id, LibraryEntry.movie_id == movie_id
+        ))
+        movie = db.get(Movie, movie_id)
+        if movie is None or movie.media_type != "serial":
+            raise ValueError(ERROR_MESSAGES["invalid_library_progress"])
+        if entry is not None and entry.last_progress_mutation_id == mutation_id:
+            return cls._serialize(entry, movie, db.get(MovieMetadata, movie_id))
+        if entry is None:
+            return cls.upsert(
+                db,
+                user_id,
+                movie_id,
+                status="watching",
+                current_season=1,
+                current_episode=1,
+                watched_episodes=1,
+                progress_mutation_id=mutation_id,
+            )
+        if entry.status == "watchlist":
+            entry.status = "watching"
+        if movie.total_episodes and entry.watched_episodes >= movie.total_episodes:
+            return cls._serialize(entry, movie, db.get(MovieMetadata, movie_id))
+
+        watched = entry.watched_episodes + 1
+        episode = (entry.current_episode or 0) + 1
+        status = "completed" if movie.total_episodes and watched >= movie.total_episodes else "watching"
+        return cls.upsert(
+            db,
+            user_id,
+            movie_id,
+            status=status,
+            current_season=entry.current_season or 1,
+            current_episode=episode,
+            watched_episodes=watched,
+            progress_mutation_id=mutation_id,
+        )
+
+    @staticmethod
+    def profile_summary(db: Session, user_id: int) -> dict:
+        base = select(LibraryEntry).where(LibraryEntry.user_id == user_id).subquery()
+        movies_watched = db.scalar(
+            select(func.count()).select_from(base.join(Movie, base.c.movie_id == Movie.id)).where(
+                base.c.status == "completed", Movie.media_type == "movie"
+            )
+        ) or 0
+        series_watched = db.scalar(
+            select(func.count()).select_from(base.join(Movie, base.c.movie_id == Movie.id)).where(
+                base.c.status == "completed", Movie.media_type == "serial"
+            )
+        ) or 0
+        episodes_watched = db.scalar(
+            select(func.coalesce(func.sum(base.c.watched_episodes), 0)).select_from(
+                base.join(Movie, base.c.movie_id == Movie.id)
+            ).where(Movie.media_type == "serial")
+        ) or 0
+        watchlist_count = db.scalar(select(func.count()).select_from(base).where(base.c.status == "watchlist")) or 0
+        ratings_count = db.scalar(select(func.count(Rating.id)).where(Rating.user_id == user_id)) or 0
+        active_series_count = db.scalar(
+            select(func.count()).select_from(base.join(Movie, base.c.movie_id == Movie.id)).where(
+                base.c.status == "watching", Movie.media_type == "serial"
+            )
+        ) or 0
+        return {
+            "movies_watched": int(movies_watched),
+            "series_watched": int(series_watched),
+            "episodes_watched": int(episodes_watched),
+            "watchlist_count": int(watchlist_count),
+            "ratings_count": int(ratings_count),
+            "active_series_count": int(active_series_count),
+        }
 
     @staticmethod
     def activity(db: Session, user_id: int, days: int = 371) -> dict:

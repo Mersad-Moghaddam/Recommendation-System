@@ -134,7 +134,7 @@ export default function Concierge({ user, onRate, onDetails, onTrack }) {
           <dl>
             <SummaryRow label={COPY.concierge.summaryMood} value={form.moods.map((mood) => optionLabel(MOOD_OPTIONS, mood)).join(' + ')} />
             <SummaryRow label={COPY.concierge.summaryMedia} value={form.media_type === 'serial' ? COPY.concierge.serial : COPY.concierge.movie} />
-            <SummaryRow label={COPY.concierge.summaryGenres} value={form.genres.length ? form.genres.map((genre) => optionLabel(GENRE_OPTIONS, genre)).join('، ') : COPY.concierge.noGenres} />
+            <SummaryRow label={COPY.concierge.summaryGenres} value={form.genres.length ? form.genres.map((genre) => optionLabel(GENRE_OPTIONS, genre)).join(COPY.common.listSeparator) : COPY.concierge.noGenres} />
             <SummaryRow label={COPY.concierge.summaryOrigin} value={optionLabel(ORIGIN_OPTIONS, form.origin)} />
             <SummaryRow label={COPY.concierge.summaryEra} value={optionLabel(ERA_OPTIONS, form.era)} />
             <SummaryRow label={COPY.concierge.summaryDiscovery} value={COPY.concierge.discoveryValue(faNumber(form.discovery))} />

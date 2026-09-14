@@ -9,15 +9,15 @@ export default defineConfig({
       registerType: 'prompt',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'fonts/*.woff2', 'images/tehran-premiere.webp'],
       manifest: {
-        name: 'سینمچ — پیشنهاد هوشمند فیلم',
-        short_name: 'سینمچ',
-        description: 'پیشنهاد فیلم توضیح‌پذیر برای حال‌وهوای امشب',
-        lang: 'fa',
-        dir: 'rtl',
+        name: 'Cinematch - Smart movie and series recommendations',
+        short_name: 'Cinematch',
+        description: 'Clear movie and series recommendations for tonight.',
+        lang: 'en',
+        dir: 'ltr',
         start_url: '/#home',
         scope: '/',
         display: 'standalone',
-        background_color: '#F5F1E8',
+        background_color: '#070811',
         theme_color: '#070811',
         categories: ['entertainment', 'lifestyle'],
         icons: [
@@ -26,8 +26,8 @@ export default defineConfig({
           { src: '/pwa-maskable-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
         shortcuts: [
-          { name: 'کشف فیلم', short_name: 'کشف', url: '/#discover', icons: [{ src: '/pwa-192x192.png', sizes: '192x192' }] },
-          { name: 'پیشنهاد امشب', short_name: 'پیشنهاد', url: '/#concierge', icons: [{ src: '/pwa-192x192.png', sizes: '192x192' }] },
+          { name: 'Discover titles', short_name: 'Discover', url: '/#discover', icons: [{ src: '/pwa-192x192.png', sizes: '192x192' }] },
+          { name: "Tonight's picks", short_name: 'Picks', url: '/#concierge', icons: [{ src: '/pwa-192x192.png', sizes: '192x192' }] },
         ],
       },
       workbox: {

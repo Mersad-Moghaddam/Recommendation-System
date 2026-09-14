@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ArrowRight, BookmarkSimple, CalendarBlank as CalendarDays, CheckCircle, Database, Info, PlayCircle, Sparkle as Sparkles, Star, UsersThree as UsersRound } from '@phosphor-icons/react'
 import { api } from '../api'
 import { DetailArtwork } from '../components/MovieArtwork'
@@ -6,6 +6,7 @@ import MovieGrid from '../components/MovieGrid'
 import { ErrorMessage, PageLoading, SectionTitle } from '../components/UI'
 import { COPY } from '../constants/copy'
 import { faNumber, genreFa, movieId, titleWithoutYear } from '../utils'
+import { announceDataChange, createMutationId, useDataRevision } from '../app/dataChanges'
 
 function useMoviePageData(id) {
   const [details, setDetails] = useState(null)
@@ -28,22 +29,60 @@ function useMoviePageData(id) {
 
 export default function MovieDetails({ id, seed, user, onRate, onDetails, onTrack, goBack }) {
   const { details, similar, error } = useMoviePageData(id)
+  const [episodeProgress, setEpisodeProgress] = useState(null)
+  const [episodeError, setEpisodeError] = useState('')
+  const [episodeBusy, setEpisodeBusy] = useState(false)
+  const episodeRequest = useRef(false)
+  const libraryRevision = useDataRevision('detail')
   const matchingSeed = seed && movieId(seed) === Number(id) ? seed : null
   const movie = details || matchingSeed
+
+  useEffect(() => {
+    let active = true
+    if (!user || movie?.media_type !== 'serial') {
+      return () => { active = false }
+    }
+    api.library({ mediaType: 'serial' })
+      .then((entries) => {
+        if (active) setEpisodeProgress(entries.find((entry) => entry.movie_id === Number(id)) || null)
+      })
+      .catch((requestError) => active && setEpisodeError(requestError.message))
+    return () => { active = false }
+  }, [id, libraryRevision, movie?.media_type, user])
   if (!movie && !error) return <PageLoading />
   if (!movie) return <ErrorMessage>{error}</ErrorMessage>
 
   return (
     <>
       <button type="button" className="back-button" onClick={goBack}><ArrowRight size={18} aria-hidden="true" />{COPY.details.back}</button>
-      <DetailHero movie={movie} details={details} onRate={onRate} onTrack={onTrack} />
+      <DetailHero movie={movie} details={details} onRate={onRate} onTrack={onTrack} episodeProgress={episodeProgress} episodeBusy={episodeBusy} onNextEpisode={async () => {
+        if (episodeRequest.current) return
+        if (!user) {
+          onTrack(movie, 'watching')
+          return
+        }
+        episodeRequest.current = true
+        setEpisodeBusy(true)
+        setEpisodeError('')
+        try {
+          const updated = await api.nextEpisode(movieId(movie), createMutationId())
+          setEpisodeProgress(updated)
+          announceDataChange('library', 'activity', 'profile')
+        } catch (requestError) {
+          setEpisodeError(requestError.message)
+        } finally {
+          episodeRequest.current = false
+          setEpisodeBusy(false)
+        }
+      }} />
+      {episodeError ? <ErrorMessage>{episodeError}</ErrorMessage> : null}
       {error ? <ErrorMessage>{error}</ErrorMessage> : null}
       <DetailExtras details={details} similar={similar} id={id} user={user} onRate={onRate} onDetails={onDetails} onTrack={onTrack} />
     </>
   )
 }
 
-function DetailHero({ movie, details, onRate, onTrack }) {
+function DetailHero({ movie, details, onRate, onTrack, episodeProgress, episodeBusy, onNextEpisode }) {
   return (
     <article className="detail-hero">
       <div className="detail-poster"><DetailArtwork movie={movie} /></div>
@@ -61,11 +100,27 @@ function DetailHero({ movie, details, onRate, onTrack }) {
         <DetailFacts details={details} />
         <div className="detail-actions">
           {movie.media_type !== 'serial' ? <button type="button" className="button primary" onClick={() => onRate(movie)}><Star size={18} aria-hidden="true" />{COPY.details.rateAction}</button> : null}
-          <button type="button" className="button secondary" onClick={() => onTrack(movie, 'watchlist')}><BookmarkSimple size={18} aria-hidden="true" />{COPY.details.addWatchlist}</button>
-          <button type="button" className="button secondary" onClick={() => onTrack(movie, movie.media_type === 'serial' ? 'watching' : 'completed')}>{movie.media_type === 'serial' ? <PlayCircle size={18} aria-hidden="true" /> : <CheckCircle size={18} aria-hidden="true" />}{movie.media_type === 'serial' ? COPY.details.trackSerial : COPY.details.markWatched}</button>
-        </div>
+           <button type="button" className="button secondary" onClick={() => onTrack(movie, 'watchlist')}><BookmarkSimple size={18} aria-hidden="true" />{COPY.details.addWatchlist}</button>
+           <button type="button" className="button secondary" onClick={() => onTrack(movie, movie.media_type === 'serial' ? 'watching' : 'completed')}>{movie.media_type === 'serial' ? <PlayCircle size={18} aria-hidden="true" /> : <CheckCircle size={18} aria-hidden="true" />}{movie.media_type === 'serial' ? COPY.details.trackSerial : COPY.details.markWatched}</button>
+          {movie.media_type === 'serial' ? <button type="button" className="button primary" disabled={episodeBusy} onClick={onNextEpisode}><CheckCircle size={18} aria-hidden="true" />{COPY.tracker.nextEpisode}</button> : null}
+         </div>
+        {movie.media_type === 'serial' && episodeProgress ? <SeriesProgress entry={episodeProgress} /> : null}
       </div>
     </article>
+  )
+}
+
+function SeriesProgress({ entry }) {
+  const status = entry.status === 'completed' ? COPY.tracker.completed : entry.status === 'watchlist' ? COPY.tracker.watchlist : COPY.tracker.watching
+  return (
+    <dl className="detail-progress" aria-live="polite">
+      <div><dt>{COPY.details.currentStatus}</dt><dd>{status}</dd></div>
+      <div><dt>{COPY.tracker.season}</dt><dd>{entry.current_season == null ? '—' : faNumber(entry.current_season)}</dd></div>
+      <div><dt>{COPY.tracker.episode}</dt><dd>{entry.current_episode == null ? '—' : faNumber(entry.current_episode)}</dd></div>
+      <div><dt>{COPY.tracker.watchedEpisodes}</dt><dd>{faNumber(entry.watched_episodes)}</dd></div>
+      <div><dt>{COPY.details.remainingEpisodes}</dt><dd>{entry.remaining_episodes == null ? '—' : faNumber(entry.remaining_episodes)}</dd></div>
+      <div><dt>{COPY.details.completion}</dt><dd>{faNumber(entry.progress_percent)}%</dd></div>
+    </dl>
   )
 }
 

@@ -1,5 +1,6 @@
 import { Moon, Sun } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
+import { COPY } from '../constants/copy'
 
 const STORAGE_KEY = 'cinematch-theme-v1'
 
@@ -15,7 +16,7 @@ function storedTheme() {
 function preferredTheme() {
   const saved = storedTheme()
   if (saved) return saved
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  return 'dark'
 }
 
 function applyTheme(theme) {
@@ -28,15 +29,8 @@ export default function ThemeToggle() {
   useEffect(() => {
     applyTheme(theme)
   }, [theme])
-  useEffect(() => {
-    if (storedTheme()) return undefined
-    const preference = window.matchMedia('(prefers-color-scheme: dark)')
-    const followSystem = (event) => setTheme(event.matches ? 'dark' : 'light')
-    preference.addEventListener('change', followSystem)
-    return () => preference.removeEventListener('change', followSystem)
-  }, [])
   const nextTheme = theme === 'dark' ? 'light' : 'dark'
-  const label = nextTheme === 'dark' ? 'فعال‌کردن نمای تاریک' : 'فعال‌کردن نمای روشن'
+  const label = nextTheme === 'dark' ? COPY.layout.themeDark : COPY.layout.themeLight
   const selectTheme = () => {
     try {
       localStorage.setItem(STORAGE_KEY, nextTheme)
@@ -48,7 +42,7 @@ export default function ThemeToggle() {
   return (
     <button className="theme-toggle" type="button" onClick={selectTheme} aria-label={label} title={label}>
       {theme === 'dark' ? <Sun size={19} aria-hidden="true" /> : <Moon size={19} aria-hidden="true" />}
-      <span>{theme === 'dark' ? 'روشن' : 'تاریک'}</span>
+      <span>{theme === 'dark' ? COPY.layout.themeLightShort : COPY.layout.themeDarkShort}</span>
     </button>
   )
 }

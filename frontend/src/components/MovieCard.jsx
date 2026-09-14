@@ -26,7 +26,7 @@ function MovieCardFrame({ movie, index, onDetails, onRate, onTrack, className })
           {movie.score != null ? (
             <span className="match"><Sparkles size={14} aria-hidden="true" />{COPY.card.match(faNumber(Math.round(movie.score * 100)))}</span>
           ) : null}
-          {movie.reason ? <span className="reason">{movie.reason}</span> : null}
+          {movie.reason ? <span className="reason"><Sparkles size={14} aria-hidden="true" />{movie.reason}</span> : null}
           <span className="details-link">{COPY.card.details}<ArrowUpLeft size={16} aria-hidden="true" /></span>
         </span>
       </a>

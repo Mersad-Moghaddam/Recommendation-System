@@ -4,11 +4,13 @@ import { api } from '../api'
 import { Empty, ErrorMessage, Hero, Loading } from '../components/UI'
 import { COPY } from '../constants/copy'
 import { faNumber, genreFa } from '../utils'
+import { useDataRevision } from '../app/dataChanges'
 
 export default function Ratings({ navigate, onDetails }) {
   const [ratings, setRatings] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const dataRevision = useDataRevision('ratings')
 
   useEffect(() => {
     let active = true
@@ -17,7 +19,7 @@ export default function Ratings({ navigate, onDetails }) {
       .catch((requestError) => active && setError(requestError.message))
       .finally(() => active && setLoading(false))
     return () => { active = false }
-  }, [])
+  }, [dataRevision])
 
   return (
     <>

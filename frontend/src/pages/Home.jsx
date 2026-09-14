@@ -4,7 +4,7 @@ import { api } from '../api'
 import { CompactMovieGrid } from '../components/MovieGrid'
 import { Hero, SectionTitle } from '../components/UI'
 import { COPY } from '../constants/copy'
-import { formatFaNumber } from '../utils'
+import { faNumber, formatFaNumber } from '../utils'
 
 export default function Home({ navigate, user, onRate, onDetails, onTrack, showError }) {
   const [stats, setStats] = useState(null)
@@ -53,9 +53,9 @@ export default function Home({ navigate, user, onRate, onDetails, onTrack, showE
       <section className="how-section">
         <SectionTitle eyebrow={COPY.home.howEyebrow} title={COPY.home.howTitle} />
         <div className="feature-grid">
-          <Feature number="۱" title={COPY.home.featureOneTitle} text={COPY.home.featureOneText} />
-          <Feature number="۲" title={COPY.home.featureTwoTitle} text={COPY.home.featureTwoText} />
-          <Feature number="۳" title={COPY.home.featureThreeTitle} text={COPY.home.featureThreeText} />
+          <Feature number={faNumber(1)} title={COPY.home.featureOneTitle} text={COPY.home.featureOneText} />
+          <Feature number={faNumber(2)} title={COPY.home.featureTwoTitle} text={COPY.home.featureTwoText} />
+          <Feature number={faNumber(3)} title={COPY.home.featureThreeTitle} text={COPY.home.featureThreeText} />
         </div>
       </section>
 

@@ -95,4 +95,9 @@ export const api = {
   }),
   removeLibrary: (movieId) => request(`/users/me/library/${movieId}`, { method: 'DELETE' }),
   activity: (days = 371) => request(`/users/me/activity?days=${days}`),
+  nextEpisode: (movieId, mutationId) => request(`/users/me/library/${movieId}/next-episode`, {
+    method: 'POST',
+    headers: { 'X-Idempotency-Key': mutationId },
+  }),
+  profileSummary: () => request('/users/me/profile-summary'),
 }

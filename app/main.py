@@ -22,6 +22,7 @@ from backend.schemas import (
     LibraryEntryOut,
     MovieDetailOut,
     MovieOut,
+    ProfileSummaryOut,
     QuizIn,
     RatingBulkIn,
     RatingBulkOut,
@@ -60,7 +61,7 @@ app.add_middleware(
     allow_origin_regex=None if settings.environment.lower() == "production" else DEV_ORIGIN_PATTERN,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
-    allow_headers=["Content-Type"],
+    allow_headers=["Content-Type", "X-Idempotency-Key"],
 )
 api = APIRouter(prefix="/api")
 
@@ -412,6 +413,33 @@ def viewing_activity(
     db: Session = Depends(get_db),
 ):
     return LibraryService.activity(db, user.id, days)
+
+
+@api.post(
+    "/users/me/library/{movie_id}/next-episode",
+    response_model=LibraryEntryOut,
+    tags=[API_TAGS["tracker"]],
+    dependencies=[Depends(validate_origin)],
+)
+def advance_library_episode(
+    movie_id: int,
+    x_idempotency_key: str = Header(..., min_length=8, max_length=64),
+    user: User = Depends(current_user),
+    db: Session = Depends(get_db),
+):
+    try:
+        return LibraryService.advance_episode(db, user.id, movie_id, x_idempotency_key)
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
+
+
+@api.get(
+    "/users/me/profile-summary",
+    response_model=ProfileSummaryOut,
+    tags=[API_TAGS["tracker"]],
+)
+def profile_summary(user: User = Depends(current_user), db: Session = Depends(get_db)):
+    return LibraryService.profile_summary(db, user.id)
 
 
 app.include_router(api)

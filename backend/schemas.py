@@ -143,3 +143,12 @@ class ActivitySummaryOut(BaseModel):
     active_days: int
     current_streak: int
     longest_streak: int
+
+
+class ProfileSummaryOut(BaseModel):
+    movies_watched: int
+    series_watched: int
+    episodes_watched: int
+    watchlist_count: int
+    ratings_count: int
+    active_series_count: int

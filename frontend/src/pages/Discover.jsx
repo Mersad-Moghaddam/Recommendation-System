@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { CaretLeft as ChevronLeft, CaretRight as ChevronRight, MagnifyingGlass as Search, SlidersHorizontal, X } from '@phosphor-icons/react'
 import { api } from '../api'
 import MovieGrid from '../components/MovieGrid'
-import { ErrorMessage, Hero, SectionTitle } from '../components/UI'
+import { Dialog, ErrorMessage, Hero, SectionTitle } from '../components/UI'
 import { COPY, GENRE_OPTIONS } from '../constants/copy'
 import { faNumber } from '../utils'
 
@@ -24,6 +24,7 @@ export default function Discover({ user, onRate, onDetails, onTrack, params, rep
   const [movies, setMovies] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [filtersOpen, setFiltersOpen] = useState(false)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -54,11 +55,15 @@ export default function Discover({ user, onRate, onDetails, onTrack, params, rep
     if (filters.query) updateFilters({ query: '', page: 0 })
   }
   const clearFilters = () => { setDraft(''); updateFilters({ query: '', iranian: false, genre: '', page: 0 }) }
+  const applyFilters = (next) => {
+    updateFilters({ ...next, page: 0 })
+    setFiltersOpen(false)
+  }
 
   return (
     <>
       <Hero className="compact-hero archive-hero" eyebrow={COPY.discover.eyebrow} title={<>{COPY.discover.titleStart}<br /><em>{COPY.discover.titleAccent}</em></>} description={COPY.discover.description} />
-      <div className="media-switch segmented" aria-label="نوع محتوا">
+      <div className="media-switch segmented" aria-label={COPY.discover.mediaType}>
         <button type="button" className={filters.mediaType === 'movie' ? 'selected' : ''} aria-pressed={filters.mediaType === 'movie'} onClick={() => updateFilters({ mediaType: 'movie', page: 0 })}>{COPY.discover.moviesTab}</button>
         <button type="button" className={filters.mediaType === 'serial' ? 'selected' : ''} aria-pressed={filters.mediaType === 'serial'} onClick={() => updateFilters({ mediaType: 'serial', iranian: false, page: 0 })}>{COPY.discover.serialsTab}</button>
       </div>
@@ -69,16 +74,10 @@ export default function Discover({ user, onRate, onDetails, onTrack, params, rep
           {draft ? <button type="button" className="search-clear" onClick={clearSearch} aria-label={COPY.discover.clearSearch}><X aria-hidden="true" /></button> : null}
           <button type="submit" className="search-submit">{COPY.discover.searchAction}</button>
         </form>
-        <div className="filter-bar">
-          <span><SlidersHorizontal size={17} aria-hidden="true" />{COPY.discover.filters}</span>
-          <select name="genre" autoComplete="off" value={filters.genre} onChange={(event) => updateFilters({ genre: event.target.value, page: 0 })} aria-label={COPY.discover.genreLabel}>
-            <option value="">{COPY.discover.allGenres}</option>
-            {GENRE_OPTIONS.map(([key, label]) => <option value={key} key={key}>{label}</option>)}
-          </select>
-          {filters.mediaType === 'movie' ? <label className="switch"><input type="checkbox" checked={filters.iranian} onChange={(event) => updateFilters({ iranian: event.target.checked, page: 0 })} /><span aria-hidden="true" />{COPY.discover.iranianOnly}</label> : null}
-          {filters.query || filters.genre || filters.iranian ? <button type="button" className="clear-filter" onClick={clearFilters}>{COPY.discover.clear}</button> : null}
-        </div>
+        <div className="filter-bar"><DiscoverFilters filters={filters} onChange={applyFilters} onClear={clearFilters} /></div>
+        <button type="button" className="filter-sheet-trigger" aria-expanded={filtersOpen} onClick={() => setFiltersOpen(true)}><SlidersHorizontal size={18} aria-hidden="true" />{COPY.discover.filters}</button>
       </section>
+      {filtersOpen ? <Dialog title={COPY.discover.filters} className="filter-sheet" onClose={() => setFiltersOpen(false)}><DiscoverFilters filters={filters} onChange={applyFilters} onClear={() => { clearFilters(); setFiltersOpen(false) }} sheet /></Dialog> : null}
       {error ? <ErrorMessage>{error}</ErrorMessage> : null}
       <SectionTitle
         eyebrow={filters.iranian ? COPY.discover.iranianCatalog : COPY.discover.fullCatalog}
@@ -94,5 +93,27 @@ export default function Discover({ user, onRate, onDetails, onTrack, params, rep
         </div>
       ) : null}
     </>
+  )
+}
+
+function DiscoverFilters({ filters, onChange, onClear, sheet = false }) {
+  const [draft, setDraft] = useState({ genre: filters.genre, iranian: filters.iranian })
+  const apply = () => onChange(draft)
+  const update = (next) => {
+    if (sheet) setDraft({ ...draft, ...next })
+    else onChange(next)
+  }
+  const values = sheet ? draft : filters
+  return (
+    <div className={sheet ? 'filter-sheet-content' : 'filter-controls'}>
+      {!sheet ? <span><SlidersHorizontal size={17} aria-hidden="true" />{COPY.discover.filters}</span> : null}
+      <select name={sheet ? 'sheet-genre' : 'genre'} autoComplete="off" value={values.genre} onChange={(event) => update({ genre: event.target.value })} aria-label={COPY.discover.genreLabel}>
+        <option value="">{COPY.discover.allGenres}</option>
+        {GENRE_OPTIONS.map(([key, label]) => <option value={key} key={key}>{label}</option>)}
+      </select>
+      {filters.mediaType === 'movie' ? <label className="switch"><input type="checkbox" checked={values.iranian} onChange={(event) => update({ iranian: event.target.checked })} /><span aria-hidden="true" />{COPY.discover.iranianOnly}</label> : null}
+      {sheet ? <button type="button" className="button primary large" onClick={apply}>{COPY.discover.applyFilters}</button> : null}
+      {filters.query || filters.genre || filters.iranian ? <button type="button" className="clear-filter" onClick={onClear}>{COPY.discover.clear}</button> : null}
+    </div>
   )
 }

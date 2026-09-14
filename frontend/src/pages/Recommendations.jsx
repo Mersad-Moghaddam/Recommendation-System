@@ -4,14 +4,19 @@ import { api } from '../api'
 import MovieGrid from '../components/MovieGrid'
 import { ErrorMessage, Hero, SectionTitle } from '../components/UI'
 import { COPY, MODE_OPTIONS } from '../constants/copy'
+import { useDataRevision } from '../app/dataChanges'
 
-export default function Recommendations({ user, onRate, onDetails, onTrack }) {
-  const [mode, setMode] = useState('balanced')
-  const [mediaType, setMediaType] = useState('movie')
+const VALID_MODES = new Set(MODE_OPTIONS.map(([value]) => value))
+
+export default function Recommendations({ user, onRate, onDetails, onTrack, params, changeRoute }) {
+  const requestedMode = params.get('mode') || 'balanced'
+  const mode = VALID_MODES.has(requestedMode) ? requestedMode : 'balanced'
+  const mediaType = params.get('type') === 'serial' ? 'serial' : 'movie'
   const [movies, setMovies] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [reloadKey, setReloadKey] = useState(0)
+  const dataRevision = useDataRevision('ratings', 'recommendations')
 
   useEffect(() => {
     let active = true
@@ -20,21 +25,26 @@ export default function Recommendations({ user, onRate, onDetails, onTrack }) {
       .catch((requestError) => active && setError(requestError.message))
       .finally(() => active && setLoading(false))
     return () => { active = false }
-  }, [mediaType, mode, reloadKey])
+  }, [dataRevision, mediaType, mode, reloadKey])
+
+  const updateRouteState = (nextMode, nextMediaType) => changeRoute('recommendations', {
+    mode: nextMode === 'balanced' ? undefined : nextMode,
+    type: nextMediaType === 'movie' ? undefined : nextMediaType,
+  })
 
   const changeMethod = (value) => {
     if (value === mode) return
     setLoading(true)
     setError('')
     setMovies([])
-    setMode(value)
+    updateRouteState(value, mediaType)
   }
   const changeMediaType = (value) => {
     if (value === mediaType) return
     setLoading(true)
     setError('')
     setMovies([])
-    setMediaType(value)
+    updateRouteState(mode, value)
   }
   const reload = () => {
     setLoading(true)
@@ -51,7 +61,7 @@ export default function Recommendations({ user, onRate, onDetails, onTrack }) {
         title={<>{COPY.recommendations.titleStart}<br /><em>{COPY.recommendations.titleAccent}</em></>}
         description={COPY.recommendations.description}
       />
-      <div className="media-switch segmented" aria-label="نوع پیشنهاد">
+      <div className="media-switch segmented" aria-label={COPY.recommendations.mediaType}>
         <button type="button" aria-pressed={mediaType === 'movie'} className={mediaType === 'movie' ? 'selected' : ''} onClick={() => changeMediaType('movie')}>{COPY.recommendations.moviesTab}</button>
         <button type="button" aria-pressed={mediaType === 'serial'} className={mediaType === 'serial' ? 'selected' : ''} onClick={() => changeMediaType('serial')}>{COPY.recommendations.serialsTab}</button>
       </div>

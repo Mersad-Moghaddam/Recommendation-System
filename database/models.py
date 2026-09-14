@@ -86,6 +86,7 @@ class LibraryEntry(Base):
     current_season: Mapped[int | None] = mapped_column(Integer)
     current_episode: Mapped[int | None] = mapped_column(Integer)
     watched_episodes: Mapped[int] = mapped_column(Integer, default=0)
+    last_progress_mutation_id: Mapped[str | None] = mapped_column(String(64))
     started_at: Mapped[datetime | None] = mapped_column(DateTime)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime)
     updated_at: Mapped[datetime] = mapped_column(
