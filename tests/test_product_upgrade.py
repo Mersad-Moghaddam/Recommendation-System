@@ -11,7 +11,16 @@ from pydantic import ValidationError
 from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import Session, sessionmaker
 
-from app.main import auth_me, bulk_rate, current_user, logout, register, validate_origin
+from app.main import (
+    advance_library_episode,
+    auth_me,
+    bulk_rate,
+    current_user,
+    logout,
+    profile_summary,
+    register,
+    validate_origin,
+)
 from backend.movie_details import build_movie_summary, shorten_overview
 from backend.schemas import Credentials, QuizIn, RatingBulkIn
 from backend.services import LibraryService, MovieService, RatingService, RecommendationService
@@ -132,6 +141,77 @@ def test_series_progress_cannot_exceed_catalog_total(product_db):
         db.commit()
         with pytest.raises(ValueError):
             LibraryService.upsert(db, user.id, 4, status="watching", watched_episodes=9)
+
+
+def test_next_episode_completes_series_and_updates_profile_summary(product_db):
+    with product_db() as db:
+        user = User(username="nextviewer", password_hash="unused")
+        series = Movie(
+            id=4, title="Finale (2025)", genres="Drama", media_type="serial",
+            total_seasons=1, total_episodes=3,
+        )
+        db.add_all([user, series])
+        db.commit()
+
+        LibraryService.upsert(
+            db, user.id, series.id, status="watching",
+            current_season=1, current_episode=2, watched_episodes=2,
+        )
+        updated = LibraryService.advance_episode(db, user.id, series.id, "final-episode-1")
+
+        assert updated["status"] == "completed"
+        assert updated["watched_episodes"] == 3
+        assert updated["remaining_episodes"] == 0
+        assert updated["completed_at"] is not None
+        assert LibraryService.profile_summary(db, user.id) == {
+            "movies_watched": 0,
+            "series_watched": 1,
+            "episodes_watched": 3,
+            "watchlist_count": 0,
+            "ratings_count": 0,
+            "active_series_count": 0,
+        }
+
+
+def test_next_episode_starts_tracking_an_untracked_series(product_db):
+    with product_db() as db:
+        user = User(username="newviewer", password_hash="unused")
+        series = Movie(id=5, title="Pilot (2025)", genres="Drama", media_type="serial", total_episodes=3)
+        db.add_all([user, series])
+        db.commit()
+
+        updated = LibraryService.advance_episode(db, user.id, series.id, "pilot-episode-1")
+
+        assert updated["status"] == "watching"
+        assert updated["watched_episodes"] == 1
+        assert updated["current_season"] == 1
+        assert updated["current_episode"] == 1
+
+
+def test_next_episode_is_idempotent_for_a_retried_mutation(product_db):
+    with product_db() as db:
+        user = User(username="retryviewer", password_hash="unused")
+        series = Movie(id=6, title="Retry (2025)", genres="Drama", media_type="serial", total_episodes=4)
+        db.add_all([user, series])
+        db.commit()
+
+        first = LibraryService.advance_episode(db, user.id, series.id, "same-mutation-key")
+        retried = LibraryService.advance_episode(db, user.id, series.id, "same-mutation-key")
+
+        assert first["watched_episodes"] == retried["watched_episodes"] == 1
+        assert LibraryService.activity(db, user.id)["total_units"] == 1
+
+
+def test_profile_and_next_episode_endpoints_use_current_user(product_db):
+    with product_db() as db:
+        user = User(username="endpointviewer", password_hash="unused")
+        series = Movie(id=4, title="Episode (2025)", genres="Drama", media_type="serial", total_episodes=2)
+        db.add_all([user, series])
+        db.commit()
+        LibraryService.upsert(db, user.id, series.id, status="watching", current_season=1, current_episode=1, watched_episodes=1)
+
+        assert advance_library_episode(series.id, "endpoint-episode-2", user, db)["status"] == "completed"
+        assert profile_summary(user, db)["series_watched"] == 1
 
 
 def test_enrichment_retries_429_retry_after():
