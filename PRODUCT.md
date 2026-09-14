@@ -2,11 +2,11 @@
 
 ## Product
 
-Cinematch (سینمچ) is a Persian-first, installable film recommendation PWA. It helps someone move from “I want to watch something tonight” to a small, explainable set of films without browsing an endless catalogue.
+Cinematch (سینمچ) is an English-first, installable movie and series recommendation PWA with complete optional Persian support. It helps someone move from “I want to watch something tonight” to a small, explainable set of titles without browsing an endless catalogue.
 
 ## Audience and scene
 
-- Persian-speaking film viewers choosing alone or with friends, usually on a phone in the evening.
+- International and Persian-speaking viewers choosing alone or with friends, usually on a phone in the evening.
 - People who want international and Iranian cinema in one coherent catalogue.
 - Returning members whose ratings should improve their recommendations over time.
 
@@ -27,7 +27,7 @@ Help the viewer choose a film for the current mood quickly, while keeping enough
 - Public: home, discovery, film detail, and similar films.
 - Authenticated: mood concierge, onboarding, ratings, and personal recommendations.
 - Recommendation reasons and match percentages remain visible and understandable.
-- Persian is the primary locale and interface direction is RTL; English film summaries retain LTR direction.
+- English is the default locale and LTR. Persian is optional and applies RTL at the document boundary; English source text retains LTR direction.
 - Authentication remains cookie-based and private endpoints are never cached by the service worker.
 - TMDB and MovieLens attribution and licence caveats remain visible.
 - Existing API routes, query parameters, hash navigation, browser back behavior, and testable labels remain compatible.
@@ -40,7 +40,7 @@ Web, responsive from 320px upward, with an installable standalone PWA experience
 
 - The primary “recommend something tonight” action is obvious within the first viewport.
 - Forms are easy to complete one-handed and communicate progress, constraints, loading, errors, and completion.
-- The UI works in light and dark themes, defaults to the system preference, and persists the viewer’s choice.
+- The dark cinematic theme is the primary experience; an intentional light theme remains available and the viewer’s choice persists.
 - App-shell controls respect safe areas, 44px touch targets, keyboard navigation, reduced motion, and WCAG 2.2 AA contrast.
 - Route-level code splitting and existing caching boundaries remain intact.
 

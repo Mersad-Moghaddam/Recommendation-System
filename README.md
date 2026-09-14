@@ -1,6 +1,6 @@
-# سینمچ — پیشنهاد فیلم برای امشب
+# Cinematch — movie and series picks for tonight
 
-سینمچ یک PWA فارسی و نصب‌پذیر برای کشف، پیشنهاد و پیگیری فیلم و سریال است. خانه، جست‌وجو، جزئیات و آثار مشابه عمومی‌اند؛ پیشنهاد هوشمند، امتیازدهی، واچ‌لیست و دفتر تماشا پس از ساخت حساب فعال می‌شوند.
+Cinematch is an English-first installable PWA for discovering, recommending, and tracking movies and series. Persian remains available as a complete RTL interface. Home, search, details, and similar titles are public; personal recommendations, ratings, watchlists, profiles, and viewing progress use cookie-authenticated accounts.
 
 ## قابلیت‌های اصلی
 

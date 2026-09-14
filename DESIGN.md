@@ -2,7 +2,7 @@
 
 ## Intent
 
-The interface should feel like entering a contemporary Tehran premiere: Persian typographic confidence, lacquered theatre surfaces, projected lapis light, and the disciplined information hierarchy of a Hollywood call sheet. It must not look like a generic streaming clone, a newspaper, or a neon cyberpunk dashboard.
+The interface should feel like a premium native cinema companion: lacquered theatre surfaces, projected lapis light, restrained iOS-like material, and the disciplined information hierarchy of a call sheet. The Tehran Premiere identity remains in its plum, rose, gold, and bilingual typographic character. It must not look like a generic streaming clone, a newspaper, or a neon cyberpunk dashboard.
 
 ## Signature
 
@@ -12,7 +12,7 @@ The home hero uses one cinematic image with a sharp diagonal projection field. T
 
 ## Color strategy
 
-Full palette with dark and light semantic themes. Dark is optimized for evening use; light resembles a clean projection booth in daylight.
+Full palette with dark and light semantic themes. Dark is the primary, English-first experience and is optimized for evening use; light resembles a clean projection booth in daylight.
 
 ### Primitive colors
 
@@ -31,9 +31,10 @@ Runtime components consume semantic and component aliases only. `frontend/src/to
 
 ## Typography
 
-- Display: Estedad, used for Persian hero titles, route titles, and section statements.
-- Body: Vazirmatn, used for interface copy, forms, descriptions, and long reading.
-- Utility/data: Estedad with tabular numerals for percentages, years, ratings, and progress.
+- English: the native system UI stack for fast, familiar iOS-like reading.
+- Persian display: Estedad for hero titles, route titles, and section statements.
+- Persian body: Vazirmatn for interface copy, forms, descriptions, and long reading.
+- Utility/data: the active interface stack with tabular numerals for percentages, years, ratings, and progress.
 
 The display scale is compact on mobile and expands sharply on wide screens. Headline line breaks follow Persian grammar. Body measure stays between roughly 45 and 70 characters.
 
@@ -94,7 +95,7 @@ Initial theme follows the OS. A visible labeled switch cycles light/dark and per
 
 ## Accessibility and localization
 
-WCAG 2.2 AA, minimum 44px coarse-pointer targets, visible focus, logical DOM order, semantic controls, no hover-only information, RTL-first geometry, correct mixed-direction content, and 200% zoom resilience.
+WCAG 2.2 AA, minimum 44px coarse-pointer targets, visible focus, logical DOM order, semantic controls, no hover-only information, LTR/RTL geometry, correct mixed-direction content, and 200% zoom resilience.
 
 ## Anti-patterns
 

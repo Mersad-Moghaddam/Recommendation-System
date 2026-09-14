@@ -47,7 +47,8 @@
 
 ## Locale and accessibility
 
-- Interface locale is Persian (`fa`) and document direction is RTL.
+- Interface locale defaults to English (`en`) and document direction is LTR.
+- Persian (`fa`) is optional, persists locally, and switches the document to RTL without navigation or reload.
 - English summaries use LTR at the content boundary.
 - Focus is never hidden by sticky app chrome or the mobile dock.
 - All primary actions and navigation targets meet touch and keyboard requirements.
